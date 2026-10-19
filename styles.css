@@ -1,0 +1,2724 @@
+/* ==========================================================================
+   Scott Allison for Clemson City Council: "Aurora Bento"
+   The campaign sign on a light ground at the top, a warm cream canvas sheet rising
+   out of it (Meet Scott, Priorities, Our City, Voting), and the near-black indigo
+   ground with slow aurora light for Get Involved and the footer. Tiles with hairline gradient
+   borders, poster-scale condensed type, one adaptive glass header pill, quiet motion.
+   Static CSS; app.js adds .js, .motion, .menu-open and the header's data-surface.
+
+   1. Fonts and tokens     6. Cover                  11. Get involved and form
+   2. Base                 7. Meet Scott             12. Footer
+   3. Layout and tiles     8. Priorities             13. Subpages
+   4. Components           9. Our City. Our Council. 14. Motion and utilities
+   5. Header and nav      10. Voting bento           15. Media queries and preferences
+   ========================================================================== */
+
+
+/* 1. Fonts and tokens ----------------------------------------------------- */
+@font-face { font-family: "Barlow Condensed"; src: url("assets/barlow-condensed-800.woff2") format("woff2"); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: "Barlow Condensed"; src: url("assets/barlow-condensed-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Manrope"; src: url("assets/manrope-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Manrope"; src: url("assets/manrope-600.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Manrope"; src: url("assets/manrope-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+
+:root {
+  /* Brand palette (provisional, Clemson-inspired). Swap these when the campaign's colors arrive. */
+  --purple: #2E1A47;
+  --orange: #F56600;
+  --regalia: #522D80;
+  --paper: #FBF9F5;            /* the cream canvas */
+
+  /* Ground and indigos */
+  --ink-950: #0E0818;          /* page ground: near-black indigo */
+  --indigo-950: #120823;
+  --indigo-900: #1A0F2E;
+  --indigo-800: #231540;
+  --violet-700: #3B2366;
+  --violet-600: #4A2B7A;
+  --violet-500: #6A3DAA;
+  --violet-400: #8B5FD0;
+  --violet-300: #B9A0F2;
+
+  /* Orange, coral, peach and the light tints */
+  --coral: #FF7A45;
+  --orange-hover: #FF7A1F;
+  --orange-active: #EC6200;
+  --orange-ink: #A84300;       /* orange as text on light grounds, 6:1 on white */
+  --orange-display: #DE5A00;   /* display-size orange punctuation on paper, 3.7:1 */
+  --peach-300: #FFB27A;        /* 10:1 on indigo */
+  --peach-200: #FFD3B0;        /* 13:1 on indigo */
+  --peach-100: #FFE8D6;
+  --peach-50: #FFF3EA;
+  --lilac-200: #DDD2EA;
+  --lilac-100: #EEE8F4;
+  --lilac-50: #F5F1F9;
+  --sand-50: #FCFAF6;
+  --sand-100: #F3EEE6;
+  --sand-200: #E6DDD0;
+  --white: #FFFFFF;
+
+  /* Roles */
+  --ink: #241539;                    /* 16:1 on paper */
+  --ink-muted: #5E5470;              /* 6.7:1 on paper, 7:1 on white */
+  --ink-on-dark: #F7F4EE;            /* 16:1 on indigo-800, 18:1 on ink-950 */
+  --ink-on-dark-muted: #CDC2DB;      /* 9:1 on indigo-800 */
+  --line: rgb(36 21 57 / 0.10);
+  --line-soft: rgb(36 21 57 / 0.08);
+  --line-strong: #7A6E8A;            /* form-field boundary, 4.75:1 on white */
+  --line-on-dark: rgb(247 244 238 / 0.16);
+  --chip-dark: #140C28;              /* solid dark chips: the dark icon chips and the shelf's draft-caption chips */
+  --error: #A3122B;
+  --error-bg: #FBECEE;
+  --focus: var(--regalia);           /* ring on cream and white: 10:1 */
+  --focus-on-dark: var(--peach-300); /* ring on the dark ground and panels: 10:1 */
+
+  /* Gradients. Surfaces that carry text keep every stop within contrast; decoration lives on pseudo-elements. */
+  --grad-dark: linear-gradient(160deg, #241541 0%, #160B29 100%);
+  --grad-sun: linear-gradient(135deg, #FFA862 0%, #F56600 58%, #FF7A1F 100%);   /* ink text: 6.3:1 at the darkest stop */
+  --grad-border: linear-gradient(135deg, rgb(106 61 170 / 0.55), rgb(255 122 69 / 0.55) 48%, rgb(106 61 170 / 0.22));
+  --grad-border-dark: linear-gradient(135deg, rgb(255 178 122 / 0.55), rgb(139 95 208 / 0.5) 50%, rgb(255 255 255 / 0.12));
+  --grad-border-glass: linear-gradient(135deg, rgb(255 255 255 / 0.3), rgb(255 255 255 / 0.1) 55%, rgb(255 178 122 / 0.34));
+  --grad-icon: linear-gradient(135deg, #FFE8D6 0%, #EEE8F4 100%);
+  --grad-ring: linear-gradient(150deg, rgb(255 211 176 / 0.95), rgb(245 102 0 / 0.8) 36%, rgb(122 79 211 / 0.75) 72%, rgb(255 255 255 / 0.3));
+  --grad-hairline: linear-gradient(90deg, transparent, rgb(185 160 242 / 0.7) 30%, rgb(255 178 122 / 0.8) 70%, transparent);
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0.6 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  /* Type, in three tiers. A: Barlow Condensed caps, only for the nameplate, section heads, the motto, page
+     titles, the wordmark and the numerals. B: Manrope 700 in sentence case with tight tracking for every
+     card, form and document heading. C: Manrope body at 18px and the 14px tracked eyebrows. */
+  --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-text: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --fs-14: 0.875rem;   /* floor */
+  --fs-15: 0.9375rem;
+  --fs-16: 1rem;       /* labels and controls */
+  --fs-18: 1.125rem;   /* body */
+  --fs-19: 1.1875rem;
+  --fs-20: 1.25rem;
+  --fs-lead: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --fs-h4: clamp(1.375rem, 1.1rem + 0.6vw, 1.75rem);    /* tier B: card, form and document headings */
+  --fs-h3: clamp(1.75rem, 1.2rem + 1.4vw, 2.5rem);      /* tier B: the priority titles */
+  --fs-h2: clamp(2.75rem, 1.7rem + 4.2vw, 5.25rem);
+  --fs-numeral: clamp(4.5rem, 3rem + 6vw, 7.5rem);
+
+  /* Radius scale */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 20px;
+  --r-tile: clamp(22px, 2vw, 28px);
+  --r-sheet: clamp(32px, 5vw, 64px);
+  --r-pill: 999px;
+
+  /* Shadows (soft, layered) */
+  --shadow-xs: 0 1px 2px rgb(36 21 57 / 0.06);
+  --shadow-sm: 0 1px 2px rgb(36 21 57 / 0.04), 0 8px 20px -12px rgb(36 21 57 / 0.14);
+  --shadow-tile: 0 1px 1px rgb(36 21 57 / 0.03), 0 2px 6px rgb(36 21 57 / 0.04), 0 18px 44px -22px rgb(36 21 57 / 0.2);
+  --shadow-tile-hover: 0 2px 4px rgb(36 21 57 / 0.04), 0 30px 64px -28px rgb(36 21 57 / 0.32);
+  --shadow-dark: 0 1px 2px rgb(0 0 0 / 0.18), 0 24px 56px -28px rgb(0 0 0 / 0.55);
+  --shadow-pop: 0 4px 12px rgb(36 21 57 / 0.08), 0 40px 80px -32px rgb(36 21 57 / 0.4);
+  --shadow-float: 0 30px 80px -30px rgb(0 0 0 / 0.7), 0 2px 6px rgb(0 0 0 / 0.2);
+  --glow-orange: 0 24px 70px -24px rgb(245 102 0 / 0.65), 0 0 120px -30px rgb(245 102 0 / 0.5);
+
+  /* Spacing and layout */
+  --wrap: 1200px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --bento-gap: clamp(10px, 1.4vw, 16px);
+  --tile-pad: clamp(20px, 3vw, 36px);
+  --panel-inset: clamp(8px, 1.1vw, 16px);
+  --section-y: clamp(72px, 8vw, 128px);
+  --header-pad: 6px;
+  --header-h: 56px;
+  --header-total: calc(var(--header-pad) * 2 + var(--header-h));
+  --ease: cubic-bezier(0.22, 0.8, 0.24, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+
+/* 2. Base ------------------------------------------------------------------ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-total) + 20px);
+  scroll-padding-bottom: 12px;
+  background: var(--ink-950);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--ink-950);
+  color: var(--ink-on-dark);
+  font-family: var(--font-text);
+  font-size: var(--fs-18);
+  line-height: 1.6;
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+h1, h2, h3, h4, p, ul, ol, dl, dd, figure, fieldset, legend { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+h1, h2, h3, h4 { text-wrap: balance; }
+p, li, dd, figcaption { text-wrap: pretty; }
+img, svg, picture { display: block; max-width: 100%; }
+img { height: auto; }
+a { color: inherit; text-underline-offset: 0.22em; text-decoration-thickness: 1.5px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a, button, input, select, label { touch-action: manipulation; -webkit-tap-highlight-color: rgb(245 102 0 / 0.16); }
+[hidden] { display: none !important; }
+strong, b { font-weight: 700; }
+::selection { background: var(--peach-200); color: var(--purple); }
+
+/* Focus rings are drawn outside the element, so each ring color follows the surface around it:
+   peach on the dark ground and panels, regalia on cream and white, ink on the orange card. */
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+/* Grounds: peach on the dark ground, regalia on the cream canvas, peach again inside the dark panels */
+body { --focus: var(--focus-on-dark); }
+.canvas { --focus: var(--regalia); }
+.cover, .priorities, .join, .site-footer, .page-hero { --focus: var(--focus-on-dark); }
+/* Controls inside a white surface get a regalia ring on that surface */
+.tile, .form-card { --focus: var(--regalia); }
+/* Tiles that are themselves links on a dark ground, and dark or glass tiles and pillars: the ring lands on the dark */
+.tile--dark, .tile--night, .tile--glass, .pillar, .join .contact-card { --focus: var(--focus-on-dark); }
+/* The dark VOTE411 card sits on the cream canvas, so its ring is regalia; the orange card takes an ink ring */
+.vote411-card.tile--dark { --focus: var(--regalia); }
+.tile--sun { --focus: var(--ink-950); }
+
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.icon {
+  width: 1.25em;
+  height: 1.25em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+
+/* 3. Layout, the canvas sheet, panels and tiles -------------------------------- */
+.wrap {
+  width: 100%;
+  max-width: calc(var(--wrap) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: max(var(--gutter), env(safe-area-inset-left), env(safe-area-inset-right));
+}
+
+.section { position: relative; padding-block: var(--section-y); }
+
+/* The cream canvas: rises out of the cover with large top radii and curves back into the dark ground below */
+.canvas {
+  position: relative;
+  z-index: 1;
+  margin-top: calc(-1 * var(--r-sheet));
+  border-radius: var(--r-sheet);
+  background: var(--paper);
+  color: var(--ink);
+  isolation: isolate;
+  box-shadow: 0 -24px 80px -30px rgb(0 0 0 / 0.6), 0 30px 80px -30px rgb(0 0 0 / 0.6);
+}
+/* A soft lilac and peach light along the top of the sheet (decorative, on a pseudo-element) */
+.canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: min(70vh, 720px);
+  border-radius: inherit;
+  background:
+    radial-gradient(44% 60% at 10% 0%, rgb(221 210 234 / 0.75), rgb(221 210 234 / 0) 70%),
+    radial-gradient(40% 56% at 90% 0%, rgb(255 211 176 / 0.5), rgb(255 211 176 / 0) 70%);
+  pointer-events: none;
+}
+
+/* Rounded dark panel inside the canvas, with its own slow aurora and grain */
+.section-panel {
+  position: relative;
+  margin-inline: var(--panel-inset);
+  padding-block: var(--section-y);
+  border-radius: var(--r-tile);
+  background: var(--grad-dark);
+  color: var(--ink-on-dark);
+  isolation: isolate;
+  overflow: clip;
+  contain: paint;
+  box-shadow: var(--shadow-dark);
+}
+
+/* Aurora: two broad soft light fields and a grain layer, scoped to the section they sit in
+   (the section has contain: paint). Decoration on siblings, never on an element that holds text. */
+.aurora { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.aurora__a, .aurora__b { position: absolute; inset: -20%; background-repeat: no-repeat; }
+.aurora__a {
+  background:
+    radial-gradient(42% 46% at 22% 28%, rgb(122 79 211 / 0.6), transparent 70%),
+    radial-gradient(28% 34% at 66% 12%, rgb(255 125 92 / 0.2), transparent 70%);
+}
+.aurora__b {
+  background:
+    radial-gradient(34% 38% at 80% 80%, rgb(245 102 0 / 0.26), transparent 70%),
+    radial-gradient(22% 26% at 86% 70%, rgb(255 125 92 / 0.14), transparent 70%),
+    radial-gradient(30% 36% at 48% 90%, rgb(82 45 128 / 0.55), transparent 70%);
+}
+.aurora__grain { position: absolute; inset: 0; background: var(--grain); background-size: 240px 240px; opacity: 0.07; mix-blend-mode: screen; }
+.aurora--panel .aurora__a {
+  background:
+    radial-gradient(40% 40% at 8% 10%, rgb(122 79 211 / 0.5), transparent 70%),
+    radial-gradient(30% 36% at 92% 94%, rgb(245 102 0 / 0.26), transparent 70%);
+}
+.aurora--panel .aurora__b { background: radial-gradient(34% 30% at 60% 50%, rgb(82 45 128 / 0.4), transparent 70%); }
+
+.bento { display: grid; gap: var(--bento-gap); }
+
+/* Tile: white surface, hairline gradient border (a masked pseudo-element), soft layered shadow */
+.tile {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  border-radius: var(--r-tile);
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: var(--shadow-tile);
+}
+.tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--grad-border);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.tile--dark { background: var(--grad-dark); color: var(--ink-on-dark); box-shadow: var(--shadow-dark); }
+.tile--dark::before { background: var(--grad-border-dark); }
+.tile--dark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(70% 70% at 100% 0%, rgb(139 95 208 / 0.28), rgb(139 95 208 / 0) 70%),
+    radial-gradient(50% 50% at 0% 100%, rgb(245 102 0 / 0.14), rgb(245 102 0 / 0) 70%);
+  pointer-events: none;
+}
+/* Dark glass on the aurora: a translucent indigo fill (no blur needed over soft light), hairline, inner highlight */
+.tile--night {
+  background: rgb(16 9 32 / 0.52);
+  color: var(--ink-on-dark);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 24px 60px -30px rgb(0 0 0 / 0.7);
+}
+.tile--night::before { background: var(--grad-border-glass); }
+/* The brightest object on the page: the orange Election Day card, ink type on an orange gradient */
+.tile--sun { background: var(--grad-sun); color: var(--ink-950); box-shadow: var(--glow-orange), inset 0 1px 0 rgb(255 255 255 / 0.45); }
+.tile--sun::before { background: linear-gradient(135deg, rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.12)); }
+.tile--glass { background: rgb(255 255 255 / 0.06); color: var(--ink-on-dark); box-shadow: none; }
+.tile--glass::before { background: var(--grad-border-glass); }
+.tile--photo { overflow: clip; background: var(--indigo-900); box-shadow: var(--shadow-tile); }
+
+.tile__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-muted);
+  font-size: var(--fs-14);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+.tile__eyebrow .icon { width: 18px; height: 18px; color: var(--orange-ink); stroke-width: 2; }
+.tile--dark .tile__eyebrow, .tile--night .tile__eyebrow { color: var(--peach-200); }
+.tile--dark .tile__eyebrow .icon, .tile--night .tile__eyebrow .icon { color: var(--peach-300); }
+.tile--sun .tile__eyebrow, .tile--sun .tile__eyebrow .icon { color: var(--ink-950); }
+.tile__big {
+  color: var(--purple);
+  font-family: var(--font-display);
+  font-size: clamp(1.625rem, 1.2rem + 1.6vw, 2.5rem);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: 0.002em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.tile--night .tile__big { color: var(--ink-on-dark); }
+.tile__value { font-size: var(--fs-18); font-weight: 700; line-height: 1.3; }
+.tile__sub { color: var(--ink-muted); font-size: var(--fs-16); font-weight: 600; line-height: 1.45; }
+.tile--dark .tile__sub, .tile--night .tile__sub { color: var(--ink-on-dark-muted); }
+
+
+/* 4. Components ------------------------------------------------------------ */
+
+/* Skip link (lands on the dark ground at the top of the page) */
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -120px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: var(--r-pill);
+  background: var(--orange);
+  color: var(--ink-950);
+  font-size: var(--fs-16);
+  font-weight: 700;
+  text-decoration: none;
+}
+.skip-link:focus { top: 12px; }
+.skip-link:focus-visible { outline: 3px solid var(--peach-300); outline-offset: 3px; box-shadow: 0 0 0 9px var(--ink-950); }
+
+/* Eyebrow: dot, label, an optional short rule between two labels.
+   The dot and rule sit on the first line's centre, and a label is never wider than the line minus the
+   dot, so a long label wraps inside itself instead of leaving the dot alone on a line. */
+.eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 6px 10px;
+  color: var(--ink-muted);
+  font-size: var(--fs-14);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+.eyebrow > span:not(.eyebrow__dot, .eyebrow__sep) { max-width: calc(100% - 18px); }
+.eyebrow__dot { flex: none; width: 6px; height: 6px; margin-top: calc(0.675em - 3px); border-radius: 50%; background: var(--regalia); }
+.eyebrow__sep { flex: none; width: 22px; height: 1px; margin-top: calc(0.675em - 0.5px); background: currentColor; opacity: 0.45; }
+.eyebrow--on-dark { color: var(--ink-on-dark-muted); }
+.eyebrow--on-dark .eyebrow__dot { background: var(--peach-300); }
+
+/* Running head: uppercase label with a hairline that fades out (no dot: orange is kept for the few hot spots) */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: clamp(24px, 3vw, 40px);
+  color: var(--ink-muted);
+  font-size: var(--fs-14);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+.section-label::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), rgb(36 21 57 / 0)); }
+.section-label--on-dark { color: var(--ink-on-dark-muted); }
+.section-label--on-dark::after { background: linear-gradient(90deg, var(--line-on-dark), rgb(247 244 238 / 0)); }
+
+/* Display heading (type tier A): poster type with an accent on the key word. Section heads carry no full stop;
+   the stop belongs to the nameplate, the motto and the page titles. */
+.h2 {
+  font-family: var(--font-display);
+  /* The vw cap only bites at large reader text sizes on narrow phones, where "INFORMATION" would overflow */
+  font-size: min(var(--fs-h2), 19vw);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.006em;
+  text-transform: uppercase;
+}
+.h2__accent { color: var(--regalia); }
+.priorities .h2__accent, .join .h2__accent { color: var(--peach-200); }
+
+/* Section intro: heading + standfirst */
+.section-intro { display: grid; gap: 18px; margin-bottom: clamp(32px, 4vw, 56px); }
+.section-intro__lede { max-width: 36ch; color: var(--ink-muted); font-size: var(--fs-lead); line-height: 1.5; }
+.priorities .section-intro__lede, .join .section-intro__lede { color: var(--ink-on-dark-muted); }
+
+.source-note { max-width: 62ch; color: var(--ink-muted); font-size: var(--fs-14); line-height: 1.55; }
+
+/* Buttons: pills, orange with dark text and an arrow chip, glass on the dark ground, dark on the orange card */
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 24px;
+  border: 1.5px solid transparent;
+  border-radius: var(--r-pill);
+  font-family: var(--font-text);
+  font-size: var(--fs-16);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.005em;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease), box-shadow 0.25s var(--ease), translate 0.2s var(--ease);
+}
+.button .icon { width: 20px; height: 20px; transition: transform 0.2s var(--ease); }
+.button--lg { min-height: 56px; padding: 0 26px; font-size: 1.0625rem; }
+.button--block { display: flex; width: 100%; white-space: normal; }
+
+.button--orange { background: var(--orange); color: var(--purple); box-shadow: 0 1px 2px rgb(168 67 0 / 0.25), 0 12px 28px -12px rgb(245 102 0 / 0.75); }
+.button--orange:hover { background: var(--orange-hover); box-shadow: 0 1px 2px rgb(168 67 0 / 0.25), 0 16px 32px -12px rgb(245 102 0 / 0.85); translate: 0 -1px; }
+.button--purple { background: var(--purple); color: var(--ink-on-dark); }
+.button--purple:hover { background: var(--regalia); }
+.button--dark { background: var(--ink-950); color: var(--ink-on-dark); box-shadow: 0 16px 36px -16px rgb(14 8 24 / 0.6); }
+.button--dark:hover { background: var(--indigo-800); }
+.button--glass {
+  border-color: rgb(255 255 255 / 0.26);
+  background: rgb(255 255 255 / 0.08);
+  color: var(--ink-on-dark);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.button--glass:hover { border-color: rgb(255 255 255 / 0.5); background: rgb(255 255 255 / 0.14); }
+.button--glass:hover .icon { transform: translateY(2px); }
+/* Outline pill for the light ground (the cover's second button): purple line and text, a faint purple fill on hover */
+.button--outline { border-color: var(--purple); background: transparent; color: var(--purple); }
+.button--outline:hover { background: rgb(46 26 71 / 0.07); }
+.button--outline:hover .icon { transform: translateY(2px); }
+
+/* Pressed states */
+.button:active { translate: 0 1px; box-shadow: none; }
+.button--orange:active { background: var(--orange-active); }
+.button--purple:active { background: var(--violet-700); }
+.button--dark:active { background: var(--indigo-900); }
+.button--glass:active { background: rgb(255 255 255 / 0.2); }
+.button--outline:active { background: rgb(46 26 71 / 0.14); }
+
+.button__chip {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  margin-right: -12px;
+  border-radius: 50%;
+  background: var(--purple);
+  color: var(--peach-300);
+}
+.button__chip .icon { width: 18px; height: 18px; stroke-width: 2; }
+.button--lg .button__chip { width: 38px; height: 38px; margin-right: -14px; }
+.button--dark .button__chip { background: var(--orange); color: var(--ink-950); }
+.button:hover .button__chip .icon { transform: translateX(2px); }
+.button:disabled { cursor: progress; opacity: 0.7; }
+
+/* Text link with arrow (44px tap height from padding) */
+.link-arrow {
+  display: inline-block;
+  padding-block: 10px;
+  color: var(--regalia);
+  font-size: var(--fs-16);
+  font-weight: 700;
+  line-height: 1.5;
+  text-decoration: underline;
+  text-decoration-color: rgb(245 102 0 / 0.7);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+  text-wrap: balance;
+  transition: color 0.2s var(--ease), text-decoration-color 0.2s var(--ease);
+}
+.link-arrow .icon { display: inline-block; width: 18px; height: 18px; margin-left: 4px; vertical-align: -3px; transition: transform 0.2s var(--ease); }
+.link-arrow:focus-visible { border-radius: var(--r-xs); }
+.link-arrow:hover { color: var(--purple); text-decoration-color: var(--orange); }
+.link-arrow:active { color: var(--violet-700); }
+.link-arrow:hover .icon { transform: translate(2px, -2px); }
+.link-line { padding-block: 10px; font-size: var(--fs-16); line-height: 1.5; text-wrap: balance; }
+.link-line > .link-arrow { display: inline; padding-block: 12px; }
+.tile--dark .link-arrow { color: var(--ink-on-dark); text-decoration-color: var(--peach-300); }
+.tile--dark .link-arrow:hover { color: var(--peach-200); }
+
+/* Icon chips, one spec: a 52px square at a 16px radius around a 24px icon at the 1.75 stroke. Light (peach-to-lilac
+   tint, hairline, orange-ink icon) on white tiles; dark (a solid --chip-dark fill, faint inner hairline, peach icon)
+   where the chip is the mark of a card: the Questions card and the contact cards. The pillars use the glass variant
+   of the same chip (section 8). */
+.icon-chip {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-md);
+  background: var(--grad-icon);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--orange-ink);
+}
+.icon-chip .icon { width: 24px; height: 24px; stroke-width: 1.75; }
+.icon-chip--dark { background: var(--chip-dark); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14); color: var(--peach-300); }
+
+/* Wordmark: name over an orange rule and the office */
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  line-height: 1;
+}
+/* The campaign mark (the blue C around the sunset, cut from the banner) beside the name */
+.wordmark__mark { flex: none; width: 40px; height: 40px; }
+.wordmark__text { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
+.wordmark__name {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: 0.012em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.wordmark__office {
+  align-self: stretch;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 2px solid var(--orange);
+  font-size: var(--fs-14);
+  font-weight: 700;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+}
+.site-header .wordmark__name, .site-header .wordmark__office { white-space: normal; }
+
+
+/* 5. Header and navigation ----------------------------------------------------- */
+.preview-note { color: var(--ink-on-dark-muted); font-size: var(--fs-14); line-height: 1.35; }
+.preview-note__inner { display: flex; align-items: center; justify-content: center; gap: 4px 16px; min-height: 44px; }
+.preview-note p { display: flex; align-items: center; gap: 8px; }
+.preview-note strong { color: var(--ink-on-dark); white-space: nowrap; }
+.preview-note__dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }
+.preview-note__more { display: none; margin-left: -8px; }
+.preview-note__extra { display: none; }
+.preview-note__sep { margin-inline: 0.25em; white-space: pre; }
+.preview-note a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--peach-200);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgb(255 178 122 / 0.6);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+  white-space: nowrap;
+}
+
+/* One sticky glass pill that adapts to the surface under it. The header band lets clicks through;
+   only the pill is interactive. data-surface is "dark" by default (also without JS) and app.js
+   switches it to "light" over the cream canvas. */
+.site-header {
+  --pill-bg: rgb(20 12 40 / 0.84);
+  --pill-fg: var(--ink-on-dark);
+  --pill-fg-soft: var(--ink-on-dark-muted);
+  --pill-line: rgb(255 255 255 / 0.14);
+  --pill-hairline: 0;
+  --pill-shadow: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 20px 50px -24px rgb(0 0 0 / 0.7);
+  --pill-hover: rgb(255 255 255 / 0.08);
+  --pill-press: rgb(255 255 255 / 0.16);
+  --pill-mark: rgb(255 255 255 / 0.12);
+  --pill-mark-line: rgb(255 255 255 / 0.1);
+  --ctl-bg: rgb(255 255 255 / 0.08);
+  --ctl-bg-hover: rgb(255 255 255 / 0.14);
+  --ctl-fg: var(--ink-on-dark);
+  --ctl-line: rgb(255 255 255 / 0.2);
+  --focus: var(--peach-300);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: var(--header-pad) max(var(--panel-inset), env(safe-area-inset-right)) var(--header-pad) max(var(--panel-inset), env(safe-area-inset-left));
+  pointer-events: none;
+}
+.site-header[data-surface="light"] {
+  --pill-bg: rgb(255 255 255 / 0.84);
+  --pill-fg: var(--ink);
+  --pill-fg-soft: var(--ink-muted);
+  --pill-line: rgb(36 21 57 / 0);
+  --pill-hairline: 1;
+  --pill-shadow: 0 1px 2px rgb(36 21 57 / 0.06), 0 16px 40px -18px rgb(36 21 57 / 0.4);
+  --pill-hover: rgb(46 26 71 / 0.06);
+  --pill-press: rgb(255 232 214 / 0.9);
+  --pill-mark: rgb(46 26 71 / 0.07);
+  --pill-mark-line: rgb(46 26 71 / 0.09);
+  --ctl-bg: var(--purple);
+  --ctl-bg-hover: var(--regalia);
+  --ctl-fg: var(--ink-on-dark);
+  --ctl-line: var(--purple);
+  --focus: var(--regalia);
+}
+.site-header__bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: calc(var(--wrap) + 40px);
+  /* The pill keeps its height at the default text size and grows with a larger one (3px block padding:
+     a 48px control plus the 1px borders is exactly 56px on phones) */
+  height: auto;
+  min-height: var(--header-h);
+  margin-inline: auto;
+  padding: 3px calc((var(--header-h) - 50px) / 2) 3px 18px;
+  border: 1px solid var(--pill-line);
+  border-radius: var(--r-pill);
+  background-color: var(--pill-bg);
+  color: var(--pill-fg);
+  box-shadow: var(--pill-shadow);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  pointer-events: auto;
+  /* The fill, border and shadow fade between surfaces; the text color swaps at once, so labels never pass through grey */
+  transition: background-color 0.35s var(--ease), border-color 0.35s var(--ease), box-shadow 0.35s var(--ease);
+}
+/* The violet-to-coral hairline that separates the white pill from the cream canvas */
+.site-header__bar::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgb(106 61 170 / 0.6), rgb(255 122 69 / 0.6) 50%, rgb(106 61 170 / 0.35));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: var(--pill-hairline);
+  transition: opacity 0.35s var(--ease);
+  pointer-events: none;
+}
+.site-header.is-scrolled .site-header__bar { --pill-shadow: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 24px 60px -24px rgb(0 0 0 / 0.85); }
+.site-header.is-scrolled[data-surface="light"] .site-header__bar { --pill-shadow: 0 1px 2px rgb(36 21 57 / 0.06), 0 20px 48px -18px rgb(36 21 57 / 0.5); }
+.site-header .wordmark { color: var(--pill-fg); }
+
+/* Menu toggle (only with JS) and the subpages' back button share the pill's control colors */
+.menu-toggle {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 16px 0 18px;
+  border: 1px solid var(--ctl-line);
+  border-radius: var(--r-pill);
+  background: var(--ctl-bg);
+  color: var(--ctl-fg);
+  font-size: var(--fs-16);
+  font-weight: 700;
+  transition: background-color 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+/* The pill's controls keep their size at any text size; the wordmark is the part that gives way */
+.menu-toggle, .header-cta, .doc-back { flex: none; }
+.site-header__bar > :focus-visible { outline-offset: 1px; }
+@media (max-width: 899.98px) {
+  .site-header__bar > .header-cta:focus-visible,
+  .site-header__bar > .menu-toggle:focus-visible,
+  .site-header__bar > .doc-back:focus-visible { outline-offset: -1px; }
+  .site-header__bar > .menu-toggle:focus-visible { box-shadow: inset 0 0 0 4px var(--pill-bg); }
+  .site-header__bar > .doc-back:focus-visible { box-shadow: inset 0 0 0 2.5px var(--pill-bg); }
+}
+.menu-toggle:hover { background: var(--ctl-bg-hover); }
+.menu-toggle:active { transform: scale(0.97); }
+.menu-toggle__icon { position: relative; width: 18px; height: 12px; }
+.menu-toggle__icon span { position: absolute; left: 0; right: 0; height: 2px; border-radius: 2px; background: currentColor; transition: transform 0.25s var(--ease), top 0.25s var(--ease); }
+.menu-toggle__icon span:first-child { top: 1px; }
+.menu-toggle__icon span:last-child { top: 9px; }
+.menu-toggle[aria-expanded="true"] .menu-toggle__icon span:first-child { top: 5px; transform: rotate(45deg); }
+.menu-toggle[aria-expanded="true"] .menu-toggle__icon span:last-child { top: 5px; transform: rotate(-45deg); }
+
+/* Desktop navigation: links on a rail; a sliding pill marks the current section (app.js sets --pill-x / --pill-w) */
+.site-nav { display: flex; align-items: center; gap: 8px; }
+.site-nav__rail { position: relative; }
+.site-nav__list { position: relative; display: flex; align-items: center; gap: 2px; }
+.site-nav__pill {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 44px;
+  width: var(--pill-w, 0px);
+  border-radius: var(--r-pill);
+  background: var(--pill-mark);
+  box-shadow: inset 0 0 0 1px var(--pill-mark-line);
+  opacity: 0;
+  transform: translate(var(--pill-x, 0px), -50%);
+  transition: transform 0.4s var(--ease-out), width 0.4s var(--ease-out), opacity 0.25s var(--ease), background-color 0.35s var(--ease);
+  pointer-events: none;
+}
+.site-nav__rail.has-active .site-nav__pill { opacity: 1; }
+.site-nav__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: var(--r-pill);
+  color: var(--pill-fg);
+  font-size: var(--fs-16);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s var(--ease);
+}
+.site-nav__link:hover { background: var(--pill-hover); }
+.site-nav__link:active { background: var(--pill-press); }
+/* The orange dot marks the current section on its own when the sliding pill is absent (no JS, no motion) */
+.site-nav__link::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--orange);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.25s var(--ease), transform 0.3s var(--ease);
+}
+.site-nav__link.is-active::before { opacity: 1; transform: none; }
+.site-nav__link.is-active { font-weight: 700; }
+.site-nav__cta { min-height: 46px; padding: 0 18px 0 22px; }
+.site-nav__cta .button__chip { width: 32px; height: 32px; margin-right: -10px; }
+
+.header-cta { display: none; }
+.site-nav__aside { display: none; }
+
+/* Scrim behind the open phone menu */
+.site-header::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: rgb(8 4 16 / 0.6);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease), visibility 0s linear 0.25s;
+}
+.menu-open .site-header::before { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.25s var(--ease); }
+html.menu-open { overflow: hidden; }
+
+
+/* 6. Cover -------------------------------------------------------------------- */
+/* The campaign sign on a light ground: white light in the middle fading to the warm sand at the edges (the sign's
+   own vignette, in the site's cream); the cream canvas sheet rises out of it below the fact bar. */
+.cover {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  contain: paint;
+  padding-block: clamp(16px, 2.4vw, 32px) calc(clamp(40px, 6vw, 80px) + var(--r-sheet));
+  background: radial-gradient(90% 85% at 50% 34%, var(--white) 0%, var(--paper) 48%, var(--sand-100) 100%);
+  color: var(--ink);
+  scroll-margin-top: 100vh;
+}
+.cover__grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--bento-gap); }
+/* Below 1000px both wrappers dissolve, so on tablets the portrait sits in the fact bento beside Election Day
+   (phones: one column, see Media queries; from 1000px the facts are one instrument bar) */
+.cover__top, .cover__facts { display: contents; }
+.cover__copy { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: flex-start; gap: 18px; min-width: 0; padding-block: clamp(10px, 3vw, 28px) clamp(10px, 2.4vw, 20px); }
+.cover__portrait { grid-column: 1; grid-row: 2 / span 2; }
+.fact--day { grid-column: 2; grid-row: 2; }
+.fact--polls { grid-column: 2; grid-row: 3; }
+.fact--ballot, .fact--early { grid-column: 1 / -1; }
+
+.cover__eyebrow { container: cover-eyebrow / inline-size; width: 100%; gap: 8px 12px; }
+.cover__place { display: none; }
+/* When the two labels no longer fit on one line (larger reader text sizes), they stack and the rule
+   between them is dropped, so it never dangles at the end of the first line. 38em is the one-line width. */
+@media (min-width: 600px) and (min-height: 501px) {
+  @container cover-eyebrow (max-width: 38em) {
+    .cover__eyebrow .eyebrow__sep { display: none; }
+    .cover__eyebrow .eyebrow__sep + span { flex-basis: 100%; }
+  }
+}
+/* The sign is the heading: the campaign banner (the blue C around the sunset photo, "Our City Our Council", "Vote
+   Scott Allison") rebuilt as an SVG by tools/brand-build.py: a vector C, the photo in a circle, the banner's own
+   lettering cleaned up at 2x. From 600px it is the one banner, at most 800px wide (from 1000px its height follows
+   the screen, see Media queries); phones get the stacked cut, the mark over the slogan, up to 340px wide. The
+   office line follows it in the display face. */
+.hero__title { display: block; width: 100%; }
+.sign { display: block; width: 100%; max-width: 800px; }
+.sign__img { display: block; width: 100%; height: auto; aspect-ratio: 1099 / 619; }
+@media (max-width: 599.98px) {
+  .sign { max-width: 340px; }
+  .sign__img { aspect-ratio: 700 / 998; }
+}
+.hero__office {
+  display: block;
+  margin-top: 16px;
+  color: var(--purple);
+  font-family: var(--font-display);
+  font-size: clamp(1.625rem, 1.15rem + 1.9vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.006em;
+  text-transform: uppercase;
+}
+.hero__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; width: 100%; margin-top: 10px; }
+.hero__btn-short { display: none; }
+
+/* Why Scott, in one line */
+.hero__lede { max-width: 50ch; color: var(--ink-muted); font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.3125rem); line-height: 1.45; }
+
+/* The phone's date line (a white card under the sign): Election Day and the polls in one place. Shown below 600px
+   only; tablets and desktops carry the same facts in the fact tiles. */
+.cover__when {
+  display: none;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 10px 16px 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--fs-16);
+  line-height: 1.35;
+}
+.cover__when strong { display: block; font-weight: 700; }
+.cover__when-hours { display: block; color: var(--ink-muted); font-weight: 600; }
+.cover__when-dot { flex: none; width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; background: var(--orange); }
+
+/* The campaign number beside the buttons (600px and up), a 44px target. No indent of its own: the row's 12px gap
+   spaces it from the buttons, so when it wraps it starts flush left under them at any width or text size. */
+.hero__call { display: none; color: var(--ink-muted); font-size: var(--fs-16); }
+.hero__call a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--regalia);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgb(245 102 0 / 0.5);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+  white-space: nowrap;
+}
+.hero__call a:hover { text-decoration-color: var(--orange); }
+
+/* Ring-framed portrait: a thin peach-orange-violet ring around a rounded frame; the image fills the frame */
+.portrait { position: relative; display: grid; min-width: 0; min-height: 0; margin: 0; }
+.portrait__ring {
+  display: grid;
+  padding: 3px;
+  border-radius: calc(var(--r-tile) + 3px);
+  background: var(--grad-ring);
+  box-shadow: 0 30px 70px -30px rgb(36 21 57 / 0.55), 0 2px 6px rgb(36 21 57 / 0.08);
+}
+.portrait__frame { position: relative; min-height: 240px; overflow: hidden; border-radius: var(--r-tile); background: var(--indigo-800); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1); }
+.portrait__frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 47% 10%; filter: saturate(0.82) contrast(1.05); }
+/* A light grade only, never the likeness: the garden's green and magenta calm down, a warm aurora light falls
+   from the top right and the foot of the frame settles into the indigo (soft-light, decorative) */
+.portrait__frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, transparent 55%, rgb(20 12 40 / 0.5)),
+    radial-gradient(90% 60% at 85% 0%, rgb(255 168 98 / 0.22), transparent 70%);
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+/* Fact tiles: solid dark on the light ground (the translucent night glass was made for the aurora) */
+.cover .tile--night { background: var(--grad-dark); box-shadow: var(--shadow-dark); }
+.cover .tile--night::before { background: var(--grad-border-dark); }
+.fact { display: flex; flex-direction: column; justify-content: space-between; gap: 12px; padding: clamp(18px, 2.4vw, 30px) clamp(16px, 2.2vw, 30px); }
+.fact--day { gap: 6px; container-type: inline-size; }
+.fact__numeral { display: flex; align-items: baseline; gap: 10px; margin: 6px 0 2px; font-family: var(--font-display); font-weight: 800; line-height: 0.82; text-transform: uppercase; }
+.fact__month { color: var(--peach-200); font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.25rem); font-weight: 700; letter-spacing: 0.06em; }
+.fact__dayno { font-size: var(--fs-numeral); letter-spacing: -0.03em; }
+.fact--day .tile__value { color: var(--ink-on-dark); }
+@container (max-width: 172px) {
+  .fact__numeral { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .fact--day .tile__value { font-size: var(--fs-15); }
+}
+.fact--polls .tile__big, .fact--ballot .tile__big { margin-top: 4px; font-size: clamp(1.375rem, 0.9rem + 1.3vw, 2.25rem); }
+.fact--early { container-type: inline-size; text-decoration: none; transition: translate 0.3s var(--ease), box-shadow 0.3s var(--ease), background-color 0.3s var(--ease); }
+/* In a narrow tile the arrow chip drops under the line instead of squeezing it */
+@container (max-width: 236px) {
+  .fact__cta { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .fact__cta-chip { align-self: flex-end; }
+}
+.cover .fact--early:hover { translate: 0 -3px; background: var(--indigo-800); box-shadow: var(--shadow-dark); }
+.fact--early .tile__big { margin-top: 2px; }
+.fact__cta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; color: var(--ink-on-dark); font-weight: 700; }
+.fact__cta-text { text-decoration: underline; text-decoration-color: rgb(255 178 122 / 0.55); text-decoration-thickness: 2px; text-underline-offset: 5px; }
+.fact__cta-chip { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--ink-on-dark); color: var(--purple); box-shadow: 0 10px 24px -12px rgb(0 0 0 / 0.6); transition: transform 0.3s var(--ease); }
+.fact__cta-chip .icon { width: 20px; height: 20px; stroke-width: 2; }
+.fact--early:hover .fact__cta-chip { transform: translateX(3px); }
+.fact--early:hover .fact__cta-text { text-decoration-color: var(--peach-300); }
+
+
+/* 7. Meet Scott -------------------------------------------------------------- */
+.meet { padding-top: calc(var(--section-y) * 0.8); }
+.meet__grid { display: grid; gap: clamp(40px, 5vw, 56px); }
+.meet__intro { display: grid; align-content: start; gap: 24px; min-width: 0; }
+.meet__bio { max-width: 36ch; font-size: clamp(1.3125rem, 1.15rem + 0.55vw, 1.5rem); font-weight: 600; line-height: 1.45; letter-spacing: -0.008em; }
+
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--bento-gap); margin-top: 4px; }
+.stat { display: flex; flex-direction: column; gap: 10px; padding: 24px 22px 22px; }
+.stat__value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--purple);
+  font-family: var(--font-display);
+  font-size: clamp(3.25rem, 2.6rem + 2.2vw, 4.75rem);
+  font-weight: 800;
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.stat__unit { color: var(--regalia); font-size: 1.375rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.stat__label { color: var(--ink-muted); font-size: var(--fs-16); line-height: 1.45; text-wrap: balance; }
+
+.vote411-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 22px 24px 26px;
+  text-decoration: none;
+  transition: translate 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+.vote411-card:hover { translate: 0 -3px; box-shadow: var(--shadow-pop); }
+.vote411-card__text { display: grid; gap: 6px; min-width: 0; }
+/* A word too long for the line (only at large reader text sizes) is hyphenated where the browser can */
+.vote411-card__title { overflow-wrap: break-word; hyphens: auto; }
+.vote411-card__kicker { color: var(--peach-300); font-size: var(--fs-14); font-weight: 700; letter-spacing: 0.12em; line-height: 1.3; text-transform: uppercase; }
+.vote411-card__title { font-size: var(--fs-h4); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance; }
+.vote411-card__foot { color: var(--ink-on-dark-muted); font-size: var(--fs-16); font-weight: 600; }
+.vote411-card__chip { display: grid; place-items: center; flex: none; width: 52px; height: 52px; border-radius: 50%; background: var(--ink-on-dark); color: var(--purple); transition: transform 0.25s var(--ease); }
+.vote411-card__chip .icon { width: 24px; height: 24px; stroke-width: 2; }
+.vote411-card:hover .vote411-card__chip { transform: translate(2px, -2px); }
+.vote411-card:active { scale: 0.99; }
+
+/* Photo gallery: four fixed-ratio slots, laid out by the gallery's own width (the photo layout: one lead, three
+   smaller). Until the first photo arrives it is the photo shelf below; on the live site the empty parts never show. */
+.gallery { container: gallery / inline-size; min-width: 0; }
+.gallery__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px var(--bento-gap); align-items: start; }
+.photo-slot { --ratio: 1 / 1; position: relative; display: grid; gap: 10px; min-width: 0; }
+.photo-slot--lead { --ratio: 3 / 2; grid-column: 1 / -1; }
+.photo-slot--wide { --ratio: 21 / 9; grid-column: 1 / -1; }
+@container gallery (min-width: 470px) {
+  .gallery__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .photo-slot:not(.photo-slot--lead) { --ratio: 4 / 5; grid-column: auto; }
+}
+@media (max-width: 999.98px) {
+  @container gallery (min-width: 470px) {
+    .photo-slot--lead { --ratio: 16 / 9; }
+    .photo-slot:not(.photo-slot--lead) { --ratio: 1 / 1; }
+  }
+}
+@container gallery (max-width: 319.98px) {
+  .photo-slot:not(.photo-slot--lead):not(.photo-slot--wide) { --ratio: 4 / 5; }
+}
+@supports (grid-template-rows: subgrid) {
+  .gallery__grid { row-gap: 0; align-items: stretch; }
+  .photo-slot { grid-row: span 3; grid-template-rows: subgrid; row-gap: 0; margin-top: 20px; }
+  .photo-slot:first-child { margin-top: 0; }
+  .photo-slot__frame, .photo-slot > img { margin-bottom: 10px; }
+  .photo-slot__caption { grid-row: 2 / span 2; grid-template-rows: subgrid; row-gap: 0; }
+  .photo-slot__caption > * { align-self: start; }
+  .photo-slot__draft { margin-top: 2px; }
+}
+.photo-slot__frame, .photo-slot > img { width: 100%; height: auto; aspect-ratio: var(--ratio); border-radius: var(--r-tile); }
+.photo-slot > img { object-fit: cover; background: var(--sand-100); box-shadow: var(--shadow-tile); }
+.photo-slot:has(> img) .photo-slot__frame { display: none; }
+.photo-slot__frame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(150deg, #F7F3EC, #EFE9F3);
+  box-shadow: inset 0 0 0 1px rgb(36 21 57 / 0.1), var(--shadow-sm);
+}
+.photo-slot__frame { container-type: inline-size; }
+.photo-slot__frame > img { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: cover; }
+.photo-slot__frame:has(img) .photo-slot__placeholder { display: none; }
+.photo-slot__caption { display: grid; justify-items: start; gap: 2px; padding-inline: 4px; }
+.photo-slot__text { color: var(--ink); font-size: var(--fs-15); font-weight: 600; line-height: 1.35; }
+.photo-slot__draft { display: block; color: var(--orange-ink); font-size: var(--fs-14); font-weight: 700; line-height: 1.4; text-wrap: balance; }
+
+/* The photo shelf (no photo in any slot yet): a one-line note, then four equal 16:10 dark frames in one row, so the
+   empty slots take one calm band instead of a screen of placeholders. Each frame is the dark gradient with a violet
+   light top left, a little warmth bottom right and a faint grain; its draft-caption tag becomes a solid chip in the
+   top-left corner and a small glass camera glyph sits in the middle (only where the chip fits on one line). No subgrid
+   here: the frames are equal and lead each cell, so captions of different lengths never misalign them. */
+.gallery__note { margin-bottom: 12px; color: var(--ink-muted); font-size: var(--fs-14); line-height: 1.5; }
+.gallery:has(img) .gallery__note { display: none; }
+.gallery:not(:has(img)) .gallery__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 10px; align-items: start; }
+.gallery:not(:has(img)) .gallery__grid > .photo-slot { --ratio: 16 / 10; grid-column: auto; grid-row: auto; grid-template-rows: none; row-gap: 8px; margin-top: 0; }
+/* Under 680px (phones, small tablets) four in a row would be too small for their chips, so the row scrolls sideways
+   instead: each frame about three quarters of the column (at most 300px), the next one peeking in, snapping to the
+   page gutter. The row runs out to the screen edges (it bleeds through the gutter) and keeps room for the frames'
+   shadow. The frames show at once here (no scroll reveal: the ones off to the side would wait for a swipe). app.js
+   makes the row focusable while it scrolls, so the keyboard can scroll it too. The step is in rem (42.5rem = 680px
+   at the default text size), so at a larger text size the row keeps scrolling with frames wide enough for the
+   bigger chips instead of squeezing four in a row. */
+@container gallery (max-width: 42.4987rem) {
+  .gallery:not(:has(img)) .gallery__grid {
+    --bleed: max(var(--gutter), env(safe-area-inset-left), env(safe-area-inset-right));
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(76%, 300px);
+    gap: 10px;
+    margin: -4px calc(-1 * var(--bleed)) -14px;
+    padding: 4px var(--bleed) 14px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--bleed);
+    scrollbar-width: thin;
+    scrollbar-color: rgb(46 26 71 / 0.28) transparent;
+  }
+  .gallery:not(:has(img)) .gallery__grid > .photo-slot { scroll-snap-align: start; }
+  .motion .gallery:not(:has(img)) .photo-slot[data-reveal] { opacity: 1; transform: none; transition: none; }
+  .gallery:not(:has(img)) .gallery__grid:focus-visible { outline-offset: -3px; }
+}
+.gallery:not(:has(img)) .photo-slot__frame { margin-bottom: 0; }
+.photo-slot:not(:has(img)) .photo-slot__frame {
+  background:
+    radial-gradient(70% 90% at 15% 10%, rgb(122 79 211 / 0.55), transparent 70%),
+    radial-gradient(60% 80% at 95% 100%, rgb(245 102 0 / 0.22), transparent 70%),
+    var(--grad-dark);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08), var(--shadow-sm);
+}
+/* On phone-sized frames the warm corner stays a hint (stronger, it reads as a smudge on a small frame) */
+@media (max-width: 599.98px) {
+  .photo-slot:not(:has(img)) .photo-slot__frame {
+    background:
+      radial-gradient(70% 90% at 15% 10%, rgb(122 79 211 / 0.55), transparent 70%),
+      radial-gradient(60% 80% at 95% 100%, rgb(245 102 0 / 0.14), transparent 70%),
+      var(--grad-dark);
+  }
+}
+.photo-slot:not(:has(img)) .photo-slot__frame::after { content: ""; position: absolute; inset: 0; background: var(--grain); background-size: 240px 240px; opacity: 0.06; pointer-events: none; }
+.photo-slot__placeholder { display: grid; place-items: center; max-width: 100%; padding: 16px; }
+.photo-slot__glyph { width: 44px; height: 44px; padding: 11px; border: 1px solid rgb(255 255 255 / 0.16); border-radius: 50%; background: rgb(255 255 255 / 0.08); color: var(--peach-300); stroke-width: 1.75; }
+.photo-slot__soon { display: none; }
+/* The glyph steps aside where the chip needs two lines (a frame under 16rem: 256px at the default text size, wider
+   at a larger one, as the chip grows with the text), so the two never meet */
+@container (max-width: 15.9987rem) {
+  .photo-slot__glyph { display: none; }
+}
+/* The chip is the caption's tag lifted onto the frame (the figure is its containing block, the frame its first
+   child). A 13px radius keeps one line a pill and lets a narrow frame's two or three lines read as a rounded label. */
+.photo-slot:not(:has(img)) .photo-slot__draft {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1;
+  max-width: calc(100% - 16px);
+  margin: 0;
+  padding: 4px 9px;
+  border-radius: 13px;
+  background: var(--chip-dark);
+  color: var(--peach-200);
+  font-size: var(--fs-14);
+  line-height: 1.3;
+}
+
+/* Launch safety net: on the live site (config.preview false: app.js adds html.is-live) a slot without a photo is never
+   shown, and a gallery without any photo is not shown at all */
+.is-live .photo-slot:not(:has(img)), .is-live .gallery:not(:has(img)) { display: none; }
+
+
+/* 8. Priorities: four identical dark-glass pillars on the deep panel ---------------- */
+.pillars { display: grid; gap: var(--bento-gap); }
+.pillar {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  min-width: 0;
+  padding: clamp(24px, 3.2vw, 40px) clamp(22px, 3vw, 40px) clamp(22px, 3vw, 36px);
+  border-radius: var(--r-tile);
+  background: transparent;
+  color: var(--ink-on-dark);
+  overflow: clip;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), var(--shadow-dark);
+}
+/* The glass hairline (a masked pseudo-element) */
+.pillar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--grad-border-glass);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+/* The glass fill: a thin white veil with a faint warm light in the top corner, brighter on hover. It stays on the
+   pseudo-element, so the pillar itself has no fill and the readability check measures the panel under the text. */
+.pillar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(60% 50% at 100% 0%, rgb(255 178 122 / 0.14), transparent 70%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.03));
+  opacity: 0.85;
+  transition: opacity 0.4s var(--ease);
+  pointer-events: none;
+}
+.pillar:hover::after, .pillar:focus-within::after { opacity: 1; }
+/* Cursor glow: a soft peach-and-violet disc that app.js moves with the pointer (transform only; fine pointers; off
+   under reduced motion). Where it passes, the summary brightens to the full on-dark ink, so it keeps 4.5:1 even over
+   the panel's warmest corner. Nothing lifts, tilts or scales: the four stay identical at rest and on hover. */
+.pillar__glow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  width: 480px;
+  height: 480px;
+  margin: -240px 0 0 -240px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 178 122 / 0.35), rgb(139 95 208 / 0.25) 48%, transparent);
+  opacity: 0;
+  transform: translate(var(--gx, 50%), var(--gy, 50%));
+  transition: opacity 0.4s var(--ease);
+  pointer-events: none;
+}
+.pillar.has-glow:hover .pillar__glow, .pillar.has-glow:focus-within .pillar__glow { opacity: 1; }
+.pillar.has-glow:hover .pillar__text { color: var(--ink-on-dark); }
+/* The glass icon chip: the icon-chip spec (16px radius, 1.75 stroke) at 64px with a 30px icon */
+.pillar__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--r-md);
+  background: rgb(255 255 255 / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+  color: var(--peach-300);
+}
+.pillar__icon .icon { width: 30px; height: 30px; stroke-width: 1.75; }
+.pillar__title {
+  margin-top: 6px;
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.022em;
+  /* Safety net only: a word too long for a whole line of its column (never at the text sizes checked) breaks
+     instead of running past the card's edge. No hyphens: auto, which would also split words that fit. */
+  overflow-wrap: break-word;
+}
+.pillar__text { max-width: 42ch; color: var(--ink-on-dark-muted); font-size: var(--fs-18); line-height: 1.55; text-wrap: balance; transition: color 0.3s var(--ease); }
+
+/* The pillar steps are set in em (16px each at the default text size: 23.4375em = 375px, 37.5em = 600px,
+   47.5em = 760px), so a reader's larger text size moves them too: at 24px text the 2x2 matrix starts at 562px and a
+   phone keeps the one column, where "collaboration" fits whole. A 2x2 matrix from 23.4375em. Where subgrid is
+   supported each pair shares its rows, so both summaries start level whatever wraps; without it each pillar stays a
+   flex column (or the header-row grid below). */
+@media (min-width: 23.4375em) {
+  .pillars { grid-template-columns: 1fr 1fr; }
+}
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 23.4375em) {
+    .pillars { grid-template-rows: repeat(2, auto auto 1fr); }
+    .pillar { display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 16px; align-content: start; }
+  }
+}
+/* Phones (375-599px at the default size): the same matrix, compact, the chip on a row of its own (the column is too
+   narrow to share). 10px gaps, a 40px chip, a 17px title and a 15px summary, so "collaboration" fits the column whole
+   and the four fit about one screen. Each title sits right under its chip in both cards of a pair (the pair's
+   longer title sets the shared title row), so the chip-to-title spacing is the same in all four and a one-line
+   title's slack falls before its summary, where the summaries line up. */
+@media (min-width: 23.4375em) and (max-width: 37.4987em) {
+  .pillars { gap: 10px; }
+  .pillar { row-gap: 10px; padding: 16px 14px 18px; border-radius: 20px; }
+  .pillar__icon { width: 40px; height: 40px; border-radius: var(--r-sm); }
+  .pillar__icon .icon { width: 22px; height: 22px; }
+  .pillar__title { margin-top: 2px; font-size: 1.0625rem; line-height: 1.2; letter-spacing: -0.01em; align-self: start; }
+  .pillar__text { font-size: var(--fs-15); line-height: 1.45; text-wrap: pretty; }
+}
+/* Under 23.4375em: one compact column, the chip beside the title (no row of its own) and the summary under both */
+@media (max-width: 23.4362em) {
+  .pillars { gap: 10px; }
+  .pillar { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: center; gap: 10px 12px; padding: 16px 16px 18px; border-radius: 20px; }
+  .pillar__icon { width: 40px; height: 40px; border-radius: var(--r-sm); }
+  .pillar__icon .icon { width: 22px; height: 22px; }
+  .pillar__title { margin-top: 0; font-size: 1.125rem; line-height: 1.2; letter-spacing: -0.01em; }
+  .pillar__text { grid-column: 1 / -1; font-size: var(--fs-15); line-height: 1.45; text-wrap: pretty; }
+}
+/* From 37.5em (600px) the chip sits beside the title in one header row, so no gap opens under a chip when a title
+   takes one line and its neighbour two, and the cards are shorter. The pair still shares its rows by subgrid (header,
+   summary): chips and titles centre on the same line, summaries start level. The title keeps at least 159px beside
+   the 48px chip at 600px and 206px beside the 64px chip at 760px ("collaboration" is 132px and 185px there). */
+@media (min-width: 37.5em) {
+  .pillar { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; column-gap: 20px; row-gap: 20px; }
+  .pillar__title { margin-top: 0; }
+  .pillar__text { grid-column: 1 / -1; align-self: start; }
+}
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 37.5em) {
+    .pillars { grid-template-rows: repeat(2, auto 1fr); }
+    .pillar { grid-row: span 2; }
+    .pillar__title { align-self: center; }
+  }
+}
+/* Small tablets and landscape phones (600-759px at the default size): a middle step between the compact matrix and
+   the full cards, so the titles keep their weight over the summaries: a 48px chip, a 21px title and a 16px summary */
+@media (min-width: 37.5em) and (max-width: 47.4987em) {
+  .pillar { grid-template-columns: 48px minmax(0, 1fr); column-gap: 16px; row-gap: 14px; padding: 20px 20px 22px; border-radius: 22px; }
+  .pillar__icon { width: 48px; height: 48px; border-radius: 14px; }
+  .pillar__icon .icon { width: 24px; height: 24px; }
+  .pillar__title { font-size: 1.3125rem; line-height: 1.18; letter-spacing: -0.015em; }
+  .pillar__text { font-size: var(--fs-16); line-height: 1.5; text-wrap: pretty; }
+}
+
+/* One shared, honestly labelled link to the full answers under the four (never one per pillar) */
+.pillars__more { display: grid; justify-items: center; gap: 10px; margin-top: 28px; text-align: center; }
+.pillars__note { color: var(--ink-on-dark-muted); font-size: var(--fs-14); line-height: 1.5; }
+/* Its arrow points up and out (a new tab), so it moves that way on hover (the glass button's default nudge is down) */
+.pillars__link:hover .icon { transform: translate(2px, -2px); }
+/* Phones: a full-width row button (the label wraps to two lines on most phones, so it starts at the left and the
+   arrow closes the row on the right), the note under it on the same left edge */
+@media (max-width: 599.98px) {
+  .pillars__more { justify-items: stretch; text-align: left; }
+  .pillars__more .button { justify-content: space-between; width: 100%; min-height: 48px; padding: 10px 20px 10px 22px; white-space: normal; text-align: left; text-wrap: balance; }
+  .pillars__note { padding-inline: 4px; }
+}
+
+
+/* 9. Our City. Our Council. ---------------------------------------------------- */
+/* The cinematic band: the lake photo fills a rounded panel the width of the canvas (inset like the priorities
+   panel), the line sits bottom left on dark scrims (pseudo-elements over the photo, so every glyph keeps 4.5:1 on
+   the worst pixel under it), cream over peach with the orange stops. The band is a dark surface (data-surface), so
+   the header pill turns dark over it. */
+.motto { position: relative; padding-block: var(--section-y) 0; }
+/* The band's height: about three quarters of the screen on laptops and desktops, but never taller than 64% of the
+   screen width (portrait tablets and desktops would otherwise get a tall slab of flat sky), and never taller than a
+   short screen under the header (laptops at 720px, phones turned sideways). Phones and tablets get their own range below. */
+.motto__band {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-items: end;
+  min-height: min(clamp(440px, min(78svh, 64vw), 860px), calc(100svh - var(--header-total) - 24px));
+  margin-inline: var(--panel-inset);
+  border-radius: var(--r-tile);
+  overflow: clip;
+  background: var(--ink-950);
+  color: var(--ink-on-dark);
+  box-shadow: var(--shadow-dark);
+}
+.motto__media, .motto__media img { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; }
+/* The crop. Phones (the band is taller than the photo's 1.58 ratio, so the cover fit trims the sides): 70% across
+   keeps the bright right-hand glow and the clouds in frame. Tablets: a little right of centre. From 1000px the band
+   is limited by its width (the fit trims the top and bottom), and 95% down lifts the treeline above the text block,
+   so the glow sits in the clear sky over the line instead of under it. From 2000px the photo is far taller than the
+   band (its height stops at 860px), and 75% keeps the horizon just above the line rather than at the band's top. */
+.motto__media img { object-fit: cover; object-position: 70% 50%; }
+@media (min-width: 600px) { .motto__media img { object-position: 60% 62%; } }
+@media (min-width: 1000px) { .motto__media img { object-position: 50% 95%; } }
+@media (min-width: 2000px) { .motto__media img { object-position: 50% 75%; } }
+/* Portrait screens: the band is taller than the photo's ratio, so the cover fit would show the photo's full height,
+   about half of it flat grey sky. The picture is drawn 20% taller than the band and anchored to its foot, a gentle
+   zoom toward the treeline and the glow that trims the top of the sky (the band clips it). */
+@media (orientation: portrait) {
+  .motto__media { inset: auto 0 0; height: 120%; }
+}
+/* The band's scrim: deep at the foot, where the line sits on the water, clear by 55%, so the glow keeps its colour */
+.motto__band::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(0deg, rgb(14 8 24 / 0.85) 0%, rgb(14 8 24 / 0.5) 30%, transparent 55%);
+  pointer-events: none;
+}
+/* --motto-fs is the line's size: by the column (19cqi), capped at 10rem, and by the screen height too (24svh), so a
+   phone turned sideways keeps the photo around the two lines instead of filling the screen with them. The scrim below
+   is measured in it, so it follows the line's length. */
+.motto__text { --motto-fs: min(clamp(2.75rem, 19cqi, 10rem), 24svh); container-type: inline-size; position: relative; z-index: 1; display: grid; gap: 18px; min-width: 0; padding-block: var(--tile-pad); }
+/* From 1000px the line sits a little higher, as a lower third rather than on the band's floor (the band's min-height
+   is taller than its content, so the band itself keeps its height) */
+@media (min-width: 1000px) {
+  .motto__text { padding-bottom: clamp(48px, 5vw, 88px); }
+}
+/* The text scrim, at every size: tied to the text block, so it follows the eyebrow and the line wherever the crop, the
+   screen height or a larger reader text size puts them (over the glow above the treeline, on some screens). Ink from
+   the band's left edge, solid under the eyebrow and the first line (4.4 times the line's size, or 24rem for the
+   eyebrow, whichever is longer), then easing to nothing over twice the line's size (an S-curve, so no edge shows), so
+   the glow to the right of the line keeps its colour; feathered over 112px above the eyebrow (a mask, so the two fades
+   multiply). Where the line fills the column (phones, larger text) the scrim runs past the band's edge, which clips it.
+   Sampled with the text hidden, every glyph keeps 6.7:1 or more on the worst photo pixel under it. */
+.motto__text::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -112px;
+  bottom: 0;
+  left: calc(50% - 50vw);
+  width: calc(50vw - 50% + var(--gutter) + max(4.4 * var(--motto-fs), 24rem) + 2 * var(--motto-fs));
+  background: linear-gradient(90deg, rgb(14 8 24 / 0.62) 0%, rgb(14 8 24 / 0.55) calc(100% - 2 * var(--motto-fs)), rgb(14 8 24 / 0.46) calc(100% - 1.5 * var(--motto-fs)), rgb(14 8 24 / 0.28) calc(100% - var(--motto-fs)), rgb(14 8 24 / 0.09) calc(100% - 0.5 * var(--motto-fs)), rgb(14 8 24 / 0) 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, rgb(0 0 0 / 0.3) 40px, rgb(0 0 0 / 0.75) 80px, #000 112px);
+  mask-image: linear-gradient(180deg, transparent 0, rgb(0 0 0 / 0.3) 40px, rgb(0 0 0 / 0.75) 80px, #000 112px);
+  pointer-events: none;
+}
+.motto__line {
+  display: grid;
+  color: var(--ink-on-dark);
+  font-family: var(--font-display);
+  font-size: var(--motto-fs);
+  font-weight: 800;
+  line-height: 0.88;
+  letter-spacing: -0.008em;
+  text-transform: uppercase;
+}
+/* On the photo the eyebrow is cream rather than the muted lilac of the flat dark panels (its dot stays peach): over
+   the brightest glow a larger reader text size can lift it to, it keeps 4.5:1 with the same scrim */
+.motto .eyebrow--on-dark { color: var(--ink-on-dark); }
+.motto__line > span { white-space: normal; }
+.motto__line > span + span { color: var(--peach-200); }
+.motto__stop { color: var(--orange); }
+.photo-credit { color: var(--ink-muted); font-size: var(--fs-14); line-height: 1.5; }
+.photo-credit a { color: var(--regalia); font-weight: 700; padding-block: 12px; }
+/* Phones and tablets: shorter bands (a little over half the screen), so the photo is mostly treeline, glow and water
+   rather than sky and the page stays short; still capped by a short screen under the header */
+@media (max-width: 599.98px) {
+  .motto__band { min-height: min(clamp(420px, 56svh, 520px), calc(100svh - var(--header-total) - 24px)); }
+}
+@media (min-width: 600px) and (max-width: 999.98px) {
+  .motto__band { min-height: min(clamp(440px, 60svh, 680px), calc(100svh - var(--header-total) - 24px)); }
+}
+/* The credit: a caption under the band on phones and small tablets; from 680px, where it fits on one line, a dark
+   chip on the photo's top-right corner (a 16px radius, so a larger reader text size that wraps it gives a rounded
+   block rather than a two-line stadium) */
+.motto__credit { margin-top: 10px; }
+@media (min-width: 680px) {
+  .motto__credit {
+    position: absolute;
+    top: calc(var(--section-y) + 16px);
+    right: calc(var(--panel-inset) + 16px);
+    z-index: 2;
+    width: auto;
+    max-width: calc(100% - 2 * var(--panel-inset) - 32px);
+    margin: 0;
+    padding: 6px 12px;
+    border-radius: var(--r-md);
+    background: rgb(14 8 24 / 0.78);
+    color: var(--ink-on-dark-muted);
+    --focus: var(--focus-on-dark);
+  }
+  .motto__credit a { color: var(--peach-200); }
+}
+
+
+/* 10. Voting bento --------------------------------------------------------------- */
+.vote__early, .vote__day, .vote__ballot, .vote__steps, .vote__questions, .vote__calendar { padding: var(--tile-pad); }
+.vote__early, .vote__day { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; font-variant-numeric: tabular-nums; }
+.vote__when { display: flex; align-items: baseline; gap: 10px; margin-top: 8px; margin-bottom: 4px; font-family: var(--font-display); font-weight: 800; line-height: 0.85; text-transform: uppercase; }
+.vote__month { color: var(--regalia); font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.25rem); letter-spacing: 0.05em; }
+.vote__days { color: var(--purple); font-size: clamp(4rem, 2.8rem + 4.6vw, 7rem); letter-spacing: -0.025em; }
+.vote__day .vote__month, .vote__day .vote__days { color: var(--ink-950); }
+.vote__title { order: -1; }
+.vote__facts { display: grid; gap: 4px 28px; font-weight: 600; line-height: 1.45; }
+.vote__facts li { position: relative; padding-left: 20px; white-space: nowrap; }
+.vote__facts li::before { content: ""; position: absolute; left: 1px; top: calc(0.6em + 1px); width: 6px; height: 6px; border-radius: 50%; background: var(--regalia); }
+.vote__facts li.is-closed::before { left: 0; top: 0.6em; width: 8px; height: 8px; border: 2px solid var(--line-strong); background: transparent; }
+.vote__note { color: var(--ink-muted); }
+/* Each card ends on one action row: the official link or the voter-information button, then "Add to calendar" beside
+   it where the card is wide enough (under it otherwise) */
+.vote__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.vote__early .vote__actions { margin-top: -2px; }
+.vote__day .vote__actions { margin-top: 4px; }
+/* The Election Day date and hours: one group (laid out beside the NOV 3 numerals from 1600px, below) */
+.vote__info { display: contents; }
+.vote__detail { font-size: var(--fs-18); font-weight: 700; }
+.vote__hours {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 18px 8px 12px;
+  border: 1px solid rgb(14 8 24 / 0.22);
+  border-radius: var(--r-pill);
+  background: rgb(255 255 255 / 0.3);
+  font-size: var(--fs-16);
+  font-weight: 700;
+}
+.vote__hours .icon { width: 24px; height: 24px; }
+.vote__cta { white-space: normal; text-align: left; }
+
+/* The timeline rail: a node in each card, joined regalia-to-orange. Vertical through the gap when the
+   cards stack (phones), horizontal above the content when they sit side by side (760px and up). */
+.vote__early, .vote__day { --node: 18px; padding-left: calc(var(--tile-pad) + 30px); }
+.vote__node {
+  position: absolute;
+  left: var(--tile-pad);
+  top: calc(var(--tile-pad) + 2px);
+  width: var(--node);
+  height: var(--node);
+  border: 3px solid var(--regalia);
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 0 0 0 5px rgb(82 45 128 / 0.14);
+}
+.vote__day .vote__node { border: 9px solid var(--ink-950); background: var(--ink-950); box-shadow: 0 0 0 5px rgb(14 8 24 / 0.18); }
+.vote__early::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--tile-pad) + var(--node) / 2 - 1px);
+  top: calc(var(--tile-pad) + 2px + var(--node));
+  bottom: calc(-1 * var(--bento-gap) - 2px);
+  width: 2px;
+  background: linear-gradient(180deg, var(--regalia), var(--orange));
+  pointer-events: none;
+}
+.vote__day::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--tile-pad) + var(--node) / 2 - 1px);
+  top: 0;
+  height: calc(var(--tile-pad) + 2px);
+  width: 2px;
+  background: rgb(14 8 24 / 0.35);
+  pointer-events: none;
+}
+
+/* Calendar strip (visual summary; same facts are in the text) */
+.calendar__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 16px; margin-bottom: 12px; }
+.calendar__title { color: var(--purple); font-size: var(--fs-h4); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; text-wrap: balance; }
+.calendar__note { color: var(--ink-muted); font-size: var(--fs-14); font-weight: 600; text-wrap: balance; }
+.calendar__months { display: none; }
+.calendar__dows, .calendar__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.calendar__dows { margin-bottom: 6px; color: var(--ink-muted); font-size: var(--fs-14); font-weight: 700; line-height: 1.2; text-align: center; }
+.day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  min-height: 56px;
+  padding: 4px 2px 8px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--sand-50);
+  color: var(--ink-muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.day b { display: none; font-size: var(--fs-14); font-weight: 700; line-height: 1; }
+/* The numerals are capped by the viewport width too (here and at 600 and 1100px), so a larger reader
+   text size cannot push them out of their cells */
+.day i { color: var(--purple); font-family: var(--font-display); font-size: min(1.5rem, 6.4vw); font-style: normal; font-weight: 700; line-height: 1; }
+.day__month { margin-bottom: 2px; color: var(--regalia); font-size: var(--fs-14); font-weight: 700; line-height: 1; }
+.day__wide { display: none; }
+.day::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; }
+.day--open { background: var(--lilac-100); }
+.day--open::after { background: var(--regalia); }
+.day--closed { background: repeating-linear-gradient(135deg, var(--sand-50) 0 6px, var(--sand-200) 6px 8px); }
+.day--off { background: var(--white); box-shadow: inset 0 0 0 1.5px var(--sand-200); }
+.day--off i { color: var(--ink-muted); }
+.day--election { overflow: visible; background: var(--grad-sun); box-shadow: inset 0 -4px 0 var(--purple), 0 10px 24px -10px rgb(245 102 0 / 0.7); color: var(--purple); }
+.day--election::after { content: none; }
+.day--election i { font-size: min(1.75rem, 7.4vw); font-weight: 800; }
+.day--election .day__wide { position: absolute; left: calc(100% + 10px); bottom: 8px; display: block; color: var(--purple); font-size: var(--fs-14); font-weight: 700; line-height: 1.25; text-align: left; white-space: nowrap; }
+.day__wide span { display: block; font-weight: 600; white-space: nowrap; }
+.calendar__legend { display: grid; gap: 8px 24px; margin-top: 16px; color: var(--ink); font-size: var(--fs-14); font-weight: 600; line-height: 1.35; }
+.calendar__legend li { display: flex; align-items: center; gap: 10px; }
+.swatch { flex: none; width: 18px; height: 18px; border-radius: 5px; }
+.swatch--open { background: var(--lilac-100); box-shadow: inset 0 -4px 0 var(--regalia); }
+.swatch--closed { background: repeating-linear-gradient(135deg, var(--sand-50) 0 3px, #B9AFC4 3px 5px); box-shadow: inset 0 0 0 1px var(--line); }
+.swatch--off { background: var(--white); box-shadow: inset 0 0 0 1.5px #B9AFC4; }
+.swatch--election { background: var(--orange); box-shadow: inset 0 -4px 0 var(--purple); }
+
+/* On the ballot: spec ledger */
+.ballot { container-type: inline-size; display: grid; gap: 14px; align-content: start; }
+.ballot__title, .steps__title { font-size: var(--fs-h4); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; }
+.spec { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line-soft); }
+.spec__item { display: flex; flex-direction: column; justify-content: space-between; padding: 14px 12px 14px 0; border-bottom: 1px solid var(--line-soft); }
+.spec__item:nth-child(even) { padding: 14px 0 14px 16px; border-left: 1px solid var(--line-soft); }
+.spec__item:nth-last-child(-n + 2) { border-bottom: 0; }
+.spec dt { color: var(--ink-muted); font-size: var(--fs-14); font-weight: 700; letter-spacing: 0.12em; line-height: 1.3; text-transform: uppercase; }
+.spec dd { margin-top: 6px; color: var(--purple); font-size: 1.25rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
+@container (min-width: 700px) {
+  .spec { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .spec__item, .spec__item:nth-child(even) { padding: 14px 16px 4px; border-bottom: 0; border-left: 1px solid var(--line-soft); }
+  .spec__item:first-child { padding-left: 0; border-left: 0; }
+}
+/* The ledger as four rows, label left and value right: on the smallest phones, and at 1100-1599px, where the ballot shares
+   its row with the questions card and four rows fill the tile instead of leaving a white band under a 2x2 grid. From
+   1600px the questions card is the taller of the two on one line each, so the ledger keeps the shorter 2x2 grid. */
+@media (max-width: 359.98px), (min-width: 1100px) and (max-width: 1599.98px) {
+  .spec { grid-template-columns: minmax(0, 1fr); }
+  .spec__item, .spec__item:nth-child(even), .spec__item:nth-last-child(-n + 2) { flex-direction: row; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 0; border-left: 0; border-bottom: 1px solid var(--line-soft); }
+  .spec__item:last-child { border-bottom: 0; padding-bottom: 2px; }
+  .spec dd { margin-top: 0; text-align: right; }
+}
+@media (min-width: 1100px) and (max-width: 1599.98px) {
+  .spec__item, .spec__item:nth-child(even), .spec__item:nth-last-child(-n + 2) { padding-block: 12px; }
+  .spec__item:last-child { padding-bottom: 4px; }
+}
+/* Side by side with the questions card (from 1100px) the ballot title sits on the same line as "Voting questions?",
+   which is centred on its 52px chip */
+@media (min-width: 1100px) {
+  .vote__ballot .ballot__title { margin-top: calc((52px - 1.15em) / 2); }
+}
+
+/* Before you go: three flat steps inside the white tile, never a box in a box. On phones a list divided by hairlines,
+   each number chip beside its title and the text under both at the card's full width; from 760px a left-to-right
+   sequence of three columns divided by 1px rules, the chip above the title, and from 1100px the chip beside the title
+   again (below), so the row stays short. */
+.steps__title { margin-bottom: 18px; }
+.steps__list { display: grid; }
+.step {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: center;
+  align-content: start;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.step + .step { padding-top: 14px; }
+.step:last-child { padding-bottom: 0; border-bottom: 0; }
+.step > p { grid-column: 1 / -1; }
+.step__num {
+  grid-row: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--grad-dark);
+  color: var(--peach-300);
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.step__title { grid-column: 2; font-size: 1.1875rem; font-weight: 700; line-height: 1.25; }
+.step p { margin-top: 4px; max-width: 44ch; text-wrap: pretty; }
+/* The link line is balanced, so no link ends on a lone word ("impediment guidance" also stays together); its link
+   keeps a 46px target from its own 12px padding, so the line itself needs only 6px */
+.step .link-line { max-width: none; margin-top: 4px; padding-block: 6px; text-wrap: balance; }
+
+/* Voting questions: the dark phone chip beside the title, the county office named on an outlined call pill with the
+   county link beside it (they wrap under each other when the card is narrow), and the date stamp */
+.questions { display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; row-gap: 12px; align-content: start; }
+.questions > * { grid-column: 1 / -1; }
+.questions .icon-chip { grid-column: 1; grid-row: 1; width: 40px; height: 40px; border-radius: var(--r-sm); }
+.questions .icon-chip .icon { width: 20px; height: 20px; }
+.questions__title { grid-column: 2; grid-row: 1; align-self: center; font-size: var(--fs-h4); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; }
+.questions > p { color: var(--ink-muted); }
+.questions__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 24px; }
+.questions__phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 18px;
+  border: 1.5px solid var(--purple);
+  border-radius: var(--r-pill);
+  color: var(--purple);
+  font-size: var(--fs-18);
+  font-weight: 700;
+  line-height: 1.25;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 0.2s var(--ease);
+}
+.questions__phone .icon { width: 20px; height: 20px; color: var(--regalia); }
+.questions__phone:hover { background: var(--lilac-100); }
+.questions__phone:active { background: var(--lilac-200); }
+/* Phones: the label does not fit beside the number on one line, so the pill becomes a deliberate two-tier block the
+   width of the card (the same words: a small "Call Pickens County:" over the large number), a rounded rectangle with
+   the icon centred beside both lines */
+@media (max-width: 599.98px) {
+  .questions__phone { width: 100%; gap: 14px; padding: 10px 20px; border-radius: var(--r-lg); }
+  .questions__phone .icon { width: 22px; height: 22px; }
+  .questions__phone-text { display: grid; }
+  .questions__phone-label { color: var(--ink-muted); font-size: var(--fs-15); font-weight: 600; line-height: 1.3; }
+  .questions__phone-num { font-size: 1.375rem; line-height: 1.2; letter-spacing: -0.01em; }
+}
+/* Phones: the date stamp is one 14px footnote under the actions (the date in bold inline, as from 1100px), with a
+   smaller check, so the card ends quietly */
+@media (max-width: 599.98px) {
+  .questions .stamp { gap: 10px; padding-top: 12px; }
+  .questions .stamp strong { display: inline; font-size: var(--fs-14); }
+  .questions .stamp__icon { width: 24px; height: 24px; padding: 4px; }
+}
+@media (min-width: 600px) {
+  .questions { grid-template-columns: 52px minmax(0, 1fr); column-gap: 16px; }
+  .questions .icon-chip { width: 52px; height: 52px; border-radius: var(--r-md); }
+  .questions .icon-chip .icon { width: 24px; height: 24px; }
+}
+
+/* Add to calendar: an outlined pill that downloads the event file (no network calls, no third-party calendar links).
+   Purple on the white early-voting tile, ink on the orange card, cream with a peach edge on the dark glass date tile. */
+.cal-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1.5px solid currentColor;
+  border-radius: var(--r-pill);
+  color: var(--purple);
+  font-size: var(--fs-16);
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s var(--ease);
+}
+.cal-link .icon { width: 20px; height: 20px; }
+.cal-link:hover { background: var(--lilac-100); }
+.tile--sun .cal-link { color: var(--ink-950); }
+/* On the Election Day card the pill pairs with the 52px voter-information button, so it takes the button's height */
+.vote__day .vote__actions .cal-link { min-height: 52px; padding-inline: 20px; }
+.tile--sun .cal-link:hover { background: rgb(255 255 255 / 0.3); }
+.cal-link--glass { border-color: var(--peach-300); background: rgb(255 255 255 / 0.06); color: var(--ink-on-dark); }
+.cal-link--glass .icon { color: var(--peach-300); }
+.cal-link--glass:hover { background: rgb(255 255 255 / 0.12); }
+.stamp { display: flex; align-items: flex-start; gap: 12px; align-self: stretch; padding-top: 16px; border-top: 1px solid var(--line-soft); color: var(--ink-muted); font-size: var(--fs-14); line-height: 1.5; }
+.stamp strong { display: block; color: var(--ink); font-size: var(--fs-16); }
+.stamp > span { text-wrap: balance; }
+.stamp__icon { width: 28px; height: 28px; padding: 5px; border-radius: 50%; background: var(--peach-100); color: var(--orange-ink); stroke-width: 2.6; }
+
+
+/* 11. Get involved and form: the dark ground again --------------------------------- */
+.join {
+  isolation: isolate;
+  overflow: clip;
+  contain: paint;
+  margin-top: calc(-1 * var(--r-sheet));
+  padding-top: calc(var(--section-y) + var(--r-sheet));
+  background: var(--ink-950);
+  color: var(--ink-on-dark);
+}
+/* Still light: an orange warmth low on the left, violet high on the right, and grain (both on pseudo-elements) */
+.join::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(46% 50% at 6% 76%, rgb(245 102 0 / 0.22), rgb(245 102 0 / 0) 70%),
+    radial-gradient(40% 46% at 46% 4%, rgb(122 79 211 / 0.42), rgb(122 79 211 / 0) 70%),
+    radial-gradient(36% 44% at 100% 96%, rgb(106 61 170 / 0.3), rgb(106 61 170 / 0) 70%);
+  pointer-events: none;
+}
+.join::after { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--grain); background-size: 240px 240px; opacity: 0.06; mix-blend-mode: screen; pointer-events: none; }
+.join__grid { display: grid; gap: 40px; }
+.join__copy { min-width: 0; }
+.join__intro { max-width: 30ch; margin-top: 18px; color: var(--ink-on-dark-muted); font-size: var(--fs-lead); line-height: 1.5; }
+
+.ways { display: grid; gap: var(--bento-gap); margin-top: 28px; }
+.way {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 76px;
+  padding: 12px 20px 12px 12px;
+  border-radius: var(--r-lg);
+  font-size: var(--fs-18);
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 0.25s var(--ease), translate 0.25s var(--ease);
+}
+.way:hover { background: rgb(255 255 255 / 0.1); translate: 0 -2px; }
+.way__icon { display: grid; place-items: center; flex: none; width: 50px; height: 50px; border-radius: 16px; background: rgb(255 255 255 / 0.08); box-shadow: inset 0 0 0 1px var(--line-on-dark); color: var(--peach-300); }
+.way__icon .icon { width: 24px; height: 24px; stroke-width: 1.75; }
+.way__label { flex: 1; text-wrap: balance; }
+.way__arrow { width: 22px; height: 22px; color: var(--peach-300); transition: transform 0.25s var(--ease); }
+.way:hover .way__arrow { transform: translateX(4px); }
+.way:active { background: rgb(255 255 255 / 0.14); translate: none; }
+
+/* Form tile: white, floating, with a thin peach-orange-violet ring (a pseudo-element just outside it) */
+.form-card {
+  position: relative;
+  min-width: 0;
+  padding: clamp(22px, 4vw, 44px) clamp(18px, 4vw, 44px) clamp(24px, 4vw, 44px);
+  border-radius: var(--r-tile);
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: var(--shadow-float);
+}
+.form-card::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: calc(var(--r-tile) + 2px);
+  background: var(--grad-ring);
+  pointer-events: none;
+}
+#signup-form { scroll-margin-top: calc(clamp(22px, 4vw, 44px) + 36px); }
+.form-card__kicker { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; color: var(--orange-ink); font-size: var(--fs-14); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+.form-card__kicker span { display: none; }
+.form-alert { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 22px; padding: 12px 16px; border-radius: var(--r-sm); background: var(--lilac-100); color: var(--violet-700); font-size: var(--fs-16); line-height: 1.5; }
+.form-alert .icon { width: 22px; height: 22px; margin-top: 1px; color: var(--regalia); }
+.form-alert span { text-wrap: balance; }
+
+fieldset { min-width: 0; border: 0; }
+legend {
+  display: block;
+  width: 100%;
+  margin-bottom: 22px;
+  padding: 0;
+  font-size: var(--fs-h4);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+#signup-form { container-type: inline-size; }
+.form-grid { display: grid; gap: 18px; }
+@container (min-width: 36.25rem) {
+  .form-grid { grid-template-columns: 1fr 1fr; }
+}
+.field { display: grid; align-content: start; gap: 8px; min-width: 0; }
+.field label, .consents__label { font-size: var(--fs-16); font-weight: 700; line-height: 1.3; }
+.field__hint { color: var(--ink-muted); font-size: var(--fs-14); font-weight: 600; }
+.field__format { color: var(--ink-muted); font-size: var(--fs-14); font-weight: 600; line-height: 1.4; }
+
+.field input, .field select {
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 16px;
+  background-color: var(--white);
+  color: var(--ink);
+  font-size: var(--fs-18);
+  line-height: 1.3;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease), background-color 0.2s var(--ease);
+}
+.field input:hover, .field select:hover { border-color: var(--purple); }
+.field input:focus-visible, .field select:focus-visible { outline: 3px solid var(--regalia); outline-offset: 2px; border-color: var(--regalia); box-shadow: 0 0 0 6px rgb(82 45 128 / 0.1); }
+.field select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 40px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E1A47' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 20px;
+}
+.field select.is-flash { animation: flash 1.2s var(--ease); }
+@keyframes flash { 0%, 100% { box-shadow: 0 0 0 0 rgb(245 102 0 / 0); } 25% { box-shadow: 0 0 0 6px rgb(245 102 0 / 0.35); } }
+
+.field input[aria-invalid="true"], .field select[aria-invalid="true"] { border-color: var(--error); background-color: #FFF8F8; box-shadow: 0 0 0 4px rgb(163 18 43 / 0.12); }
+.field input[aria-invalid="true"]:focus-visible, .field select[aria-invalid="true"]:focus-visible { outline-color: var(--error); border-color: var(--error); box-shadow: 0 0 0 6px rgb(163 18 43 / 0.14); }
+.consent input[aria-invalid="true"]:focus-visible { outline-color: var(--error); }
+.field-note { display: flex; align-items: flex-start; gap: 8px; margin-top: -6px; color: var(--error); font-size: var(--fs-14); font-weight: 700; line-height: 1.4; }
+.field-note::before { content: "!"; display: grid; place-items: center; flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--error); color: var(--white); font-size: var(--fs-14); line-height: 1; }
+
+.consents { display: grid; gap: 10px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line-soft); }
+.consent {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 16px 18px 16px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--white);
+  font-size: var(--fs-16);
+  line-height: 1.55;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease), background-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.consent > span { text-wrap: pretty; }
+.consent:hover { border-color: var(--line-strong); }
+.consent:has(input:checked) { border-color: var(--regalia); background: var(--lilac-50); box-shadow: inset 0 0 0 1px var(--regalia); }
+.consent:has(input[aria-invalid="true"]) { border-color: var(--error); box-shadow: inset 0 0 0 1px var(--error), 0 0 0 4px rgb(163 18 43 / 0.1); }
+.consent input {
+  appearance: none;
+  -webkit-appearance: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin: 0;
+  border: 2px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--white);
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+.consent input::after { content: ""; width: 15px; height: 15px; opacity: 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F7F4EE' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4.5 12.5 5 5L19.5 7'/%3E%3C/svg%3E") center / contain no-repeat; transition: opacity 0.15s var(--ease); }
+.consent input:hover { border-color: var(--purple); }
+.consent input:checked { border-color: var(--purple); background: var(--purple); }
+.consent input:checked::after { opacity: 1; }
+.consent input:focus-visible { outline: 3px solid var(--regalia); outline-offset: 3px; }
+
+.form-privacy { margin: 18px 0 22px; color: var(--ink-muted); font-size: var(--fs-16); line-height: 1.55; }
+.form-privacy a { color: var(--regalia); font-weight: 700; text-decoration-color: var(--orange); text-decoration-thickness: 2px; text-underline-offset: 5px; }
+.honeypot { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.form-error { color: var(--error); font-size: var(--fs-16); font-weight: 700; line-height: 1.5; }
+.form-error:empty { display: none; }
+.form-error:not(:empty) { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; padding: 14px 16px; border: 1px solid rgb(163 18 43 / 0.3); border-radius: var(--r-sm); background: var(--error-bg); }
+.form-error:not(:empty)::before { content: "!"; content: "!" / ""; display: grid; place-items: center; flex: none; width: 24px; height: 24px; margin-top: 1px; border-radius: 50%; background: var(--error); color: var(--white); font-size: var(--fs-14); }
+.form-error.is-marked:not(:empty) { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+.form-result { display: grid; justify-items: start; gap: 16px; padding: clamp(22px, 3.5vw, 32px); border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--lilac-50); outline: none; }
+.form-result:focus, .form-result:focus-visible { outline: none; }
+.form-result::before { content: ""; width: 60px; height: 60px; border-radius: 50%; background: var(--orange) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E1A47' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 28px no-repeat; box-shadow: 0 10px 24px -12px rgb(245 102 0 / 0.7); }
+.form-result h3 { font-size: var(--fs-h4); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; }
+.form-result p { color: var(--ink-muted); }
+.form-result ul { display: grid; gap: 8px; width: 100%; }
+.form-result li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding: 12px 16px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--white); font-size: var(--fs-16); }
+@container (max-width: 279.98px) { .form-result li { display: grid; gap: 2px; } }
+.form-result__key { color: var(--ink-muted); font-weight: 600; }
+.form-result__value { font-weight: 700; }
+.form-result .link-arrow:hover .icon { transform: translateX(3px); }
+.form-noscript { margin-top: 16px; font-size: var(--fs-16); line-height: 1.6; }
+.form-noscript a { color: var(--regalia); font-weight: 700; text-decoration-color: var(--orange); text-decoration-thickness: 2px; text-underline-offset: 5px; padding-block: 12px; }
+html:not(.js) #signup-form fieldset, html:not(.js) .form-alert { display: none; }
+
+/* Direct contact tiles */
+.direct { min-width: 0; }
+.direct__title { color: var(--ink-on-dark); font-size: var(--fs-h4); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; }
+.direct__links { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--bento-gap); margin-top: 18px; }
+.contact-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 84px;
+  padding: 14px 20px 14px 14px;
+  border-radius: var(--r-lg);
+  color: var(--purple);
+  text-decoration: none;
+  transition: translate 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+.contact-card:hover { translate: 0 -2px; box-shadow: var(--shadow-pop); }
+.contact-card:active { translate: none; }
+.contact-card__text { display: grid; flex: 1; gap: 4px; min-width: 0; }
+.contact-card__label { color: var(--ink-muted); font-size: var(--fs-14); font-weight: 700; letter-spacing: 0.12em; line-height: 1.2; text-transform: uppercase; }
+.contact-card__value { font-size: clamp(1.375rem, 1.2rem + 0.5vw, 1.625rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.contact-card__value--page { font-size: clamp(1.125rem, 1.05rem + 0.3vw, 1.3125rem); line-height: 1.25; white-space: normal; text-wrap: balance; }
+.contact-card__arrow { width: 22px; height: 22px; color: var(--orange-ink); transition: transform 0.2s var(--ease); }
+.contact-card:hover .contact-card__arrow { transform: translateX(3px); }
+
+.join-date { margin-top: var(--bento-gap); padding: 18px 20px 16px; border-radius: var(--r-lg); font-variant-numeric: tabular-nums; }
+.join-date__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; }
+.join-date__label { color: var(--peach-300); font-size: var(--fs-14); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.join-date__value { color: var(--ink-on-dark); font-size: 1.375rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
+.join-date__note { margin-top: 6px; color: var(--ink-on-dark-muted); font-size: var(--fs-16); line-height: 1.55; }
+/* "Make a plan to vote" and the Election Day calendar file side by side (stacked when the tile is narrow) */
+.join-date__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; margin-top: 10px; }
+.join-date__plan { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink-on-dark); font-size: var(--fs-16); font-weight: 700; text-decoration-color: var(--orange); text-decoration-thickness: 2px; text-underline-offset: 5px; white-space: nowrap; }
+/* Narrow phones (where the two no longer fit on one row; in em, so a larger reader text size stacks them sooner): the
+   link, then the pill at the tile's full width and centred, as on the voting cards' phone pills, closer together */
+@media (max-width: 26.24em) {
+  .join-date__actions { flex-direction: column; align-items: stretch; gap: 2px; margin-top: 4px; }
+  .join-date__plan { align-self: flex-start; }
+  .join-date__actions .cal-link { justify-content: center; }
+}
+
+
+/* 12. Footer: the dark ground with a gradient hairline above ------------------------------- */
+.site-footer {
+  position: relative;
+  padding: clamp(40px, 5vw, 64px) 0 calc(24px + env(safe-area-inset-bottom));
+  background: var(--ink-950);
+  color: var(--ink-on-dark);
+  font-size: var(--fs-16);
+}
+.site-footer::before { content: ""; position: absolute; left: var(--panel-inset); right: var(--panel-inset); top: 0; height: 1px; background: var(--grad-hairline); }
+.site-footer__grid { display: grid; gap: 32px; }
+.site-footer__brand p { margin-top: 16px; color: var(--ink-on-dark-muted); line-height: 1.6; }
+.site-footer__head { color: var(--ink-on-dark-muted); font-size: var(--fs-14); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; text-wrap: balance; }
+.site-footer__links { margin-top: 6px; }
+.site-footer__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink-on-dark);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgb(255 255 255 / 0.25);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 5px;
+  text-wrap: balance;
+  transition: text-decoration-color 0.2s var(--ease);
+}
+.site-footer__links a:hover { text-decoration-color: var(--orange); }
+.site-footer__links a[aria-current="page"] { text-decoration-color: var(--orange); text-decoration-thickness: 2px; }
+.site-footer__bottom { display: grid; gap: 6px; margin-top: 32px; padding-top: 22px; border-top: 1px solid var(--line-on-dark); color: var(--ink-on-dark-muted); font-size: var(--fs-14); line-height: 1.5; }
+.site-footer__bottom a { color: var(--peach-200); font-weight: 700; padding-block: 12px; }
+.site-footer__bottom:not(:has(> :not([hidden]))) { display: none; }
+/* The "Paid for by" attribution: a plain bordered box, like a print disclaimer, always the first bottom line.
+   The committee name is a preview placeholder until the campaign supplies it (site-check fails a live build without it). */
+.paid-for { grid-column: 1 / -1; margin-bottom: 8px; }
+.paid-for__box { display: inline-block; padding: 8px 14px; border: 1px solid rgb(247 244 238 / 0.6); border-radius: 4px; color: var(--ink-on-dark); font-size: var(--fs-14); font-weight: 600; line-height: 1.4; }
+
+
+/* 13. Subpages ------------------------------------------------------------------------ */
+.doc-back { min-height: 48px; padding: 0 18px 0 14px; gap: 8px; border-color: var(--ctl-line); background: var(--ctl-bg); color: var(--ctl-fg); }
+.doc-back:hover { background: var(--ctl-bg-hover); }
+.doc-back .icon { width: 20px; height: 20px; }
+.doc-back:hover .icon { transform: translateX(-3px); }
+.doc-back__more { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.prose .doc-back, .doc-end .doc-back { --ctl-bg: var(--purple); --ctl-bg-hover: var(--regalia); --ctl-fg: var(--ink-on-dark); --ctl-line: var(--purple); }
+
+/* Page hero on the dark ground, aurora scoped to it; the cream canvas carries the document */
+.page-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  contain: paint;
+  padding-block: clamp(24px, 4vw, 56px) calc(clamp(40px, 6vw, 80px) + var(--r-sheet));
+  background: var(--ink-950);
+  color: var(--ink-on-dark);
+}
+.page-hero__title {
+  margin-top: 16px;
+  font-family: var(--font-display);
+  font-size: clamp(3.25rem, 2rem + 5.4vw, 6.75rem);
+  font-weight: 800;
+  line-height: 0.88;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+.page-hero__title::after { content: "."; content: "." / ""; color: var(--orange); }
+.page-hero__lede { max-width: 56ch; margin-top: 22px; color: var(--ink-on-dark-muted); font-size: var(--fs-lead); line-height: 1.5; }
+@media (max-width: 599.98px) { .page-hero__lede { text-wrap: wrap; } }
+
+.canvas--doc { padding-top: clamp(32px, 5vw, 64px); }
+.doc-layout { display: grid; gap: 28px; padding-bottom: clamp(56px, 8vw, 112px); }
+.doc-toc { padding: 20px 20px 12px; }
+.doc-toc__label { color: var(--ink-muted); font-size: var(--fs-14); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+.doc-toc ol { margin-top: 6px; }
+.doc-toc li + li { border-top: 1px solid var(--line-soft); }
+.doc-toc a { display: flex; align-items: center; gap: 12px; min-height: 48px; padding-block: 8px; color: var(--ink); font-size: var(--fs-16); font-weight: 600; line-height: 1.35; text-decoration: none; text-wrap: balance; }
+.doc-toc a::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--lilac-200); transition: background-color 0.2s var(--ease); }
+.doc-toc a:hover { color: var(--regalia); text-decoration: underline; text-decoration-color: var(--orange); text-decoration-thickness: 2px; text-underline-offset: 5px; }
+.doc-toc a:hover::before { background: var(--orange); }
+
+.prose { min-width: 0; max-width: 60ch; }
+.prose > p, .prose .source-item p { font-size: var(--fs-18); line-height: 1.7; }
+.prose > p + p { margin-top: 1em; }
+.prose > h2, .source-item h2 {
+  margin: 48px 0 14px;
+  font-size: var(--fs-h4);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  scroll-margin-top: 4px;
+}
+.prose > h2::before, .source-item h2::before { content: ""; display: block; width: 36px; height: 3px; margin-bottom: 16px; border-radius: 3px; background: linear-gradient(90deg, var(--orange), var(--violet-500)); }
+.prose > h2:first-child { margin-top: 0; }
+.prose a:not(.button) { color: var(--regalia); font-weight: 700; text-decoration-color: var(--orange); text-decoration-thickness: 2px; text-underline-offset: 5px; padding-block: 12px; }
+.prose a:not(.button):hover { color: var(--purple); }
+.source-list { display: grid; gap: 48px; }
+.source-item { scroll-margin-top: 4px; }
+.source-item h2 { margin-top: 0; }
+.source-item p + p { margin-top: 1em; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px 24px; margin-top: 18px; font-size: var(--fs-14); font-weight: 700; }
+.swatches li { display: inline-flex; align-items: center; gap: 10px; }
+.swatches__chip { width: 28px; height: 28px; border-radius: 8px; box-shadow: inset 0 0 0 1px rgb(36 21 57 / 0.2); }
+@media (max-width: 479.98px) {
+  .swatches { gap: 10px 20px; }
+  .swatches li { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+.source-figure { display: grid; gap: 10px; margin-top: 20px; }
+.source-figure img { width: 100%; aspect-ratio: 21 / 9; border-radius: var(--r-md); object-fit: cover; object-position: 55% 62%; }
+.source-figure figcaption { color: var(--ink-muted); font-size: var(--fs-14); }
+.source-figure figcaption a { padding-block: 12px; }
+.doc-end { margin-top: 36px; }
+
+
+/* 14. Motion (progressive enhancement: app.js adds .motion only when allowed) and utilities --- */
+@media (prefers-reduced-motion: no-preference) {
+  .motion [data-reveal] { opacity: 0; transform: translate3d(0, 20px, 0); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+  .motion [data-reveal].is-in { opacity: 1; transform: none; }
+  .motion .vote411-card[data-reveal] { transition: opacity 0.7s var(--ease), transform 0.7s var(--ease), translate 0.25s var(--ease), box-shadow 0.25s var(--ease); }
+  .motion .gallery__grid > :nth-child(2), .motion .vote__bento > :nth-child(2) { transition-delay: 0.08s; }
+  .motion .gallery__grid > :nth-child(3) { transition-delay: 0.16s; }
+  .motion .gallery__grid > :nth-child(4) { transition-delay: 0.24s; }
+  /* The four pillars reveal together, never one after another: a cascade would read as a ranking */
+
+  /* Cover: the sign rises first; the date line, lede, actions, portrait and tiles follow */
+  .js .cover__eyebrow, .js .hero__title, .js .cover__when, .js .hero__lede, .js .hero__actions, .js .cover__portrait, .js .cover__facts > .tile { animation: rise 0.9s var(--ease-out) both; }
+  .js .cover__when, .js .hero__lede { animation-delay: 0.36s; }
+  .js .hero__actions { animation-delay: 0.44s; }
+  .js .cover__portrait { animation-delay: 0.2s; }
+  .js .fact--day { animation-delay: 0.46s; }
+  .js .fact--polls { animation-delay: 0.54s; }
+  .js .fact--ballot { animation-delay: 0.62s; }
+  .js .fact--early { animation-delay: 0.7s; }
+  /* From 1000px the four facts are one instrument bar, which rises as one piece (an empty glass bar never shows).
+     The bar's own animation is declared at every width (below 1000px the wrapper is display: contents, so it paints
+     nothing), so crossing 1000px, a print or a full-page capture never restarts it at opacity 0; only the per-tile
+     animations are switched by width. */
+  .js .cover__facts { animation: rise 0.9s var(--ease-out) 0.5s both; }
+  @media (min-width: 1000px) {
+    .js .cover__facts > .tile { animation: none; }
+  }
+  .js .page-hero__title, .js .page-hero__lede, .js .page-hero .eyebrow { animation: rise 0.9s var(--ease-out) both; }
+  .js .page-hero__lede { animation-delay: 0.16s; }
+  /* After the entrance has played (app.js adds .is-settled), it is dropped, so a breakpoint change never replays it */
+  html.js.is-settled :is(.hero__title, .cover__eyebrow, .cover__when, .hero__lede, .hero__actions, .cover__portrait, .cover__facts, .cover__facts > .tile, .page-hero__title, .page-hero__lede, .page-hero .eyebrow) { animation: none; }
+
+  /* Aurora light fields move very slowly (transform only), scoped to the cover and the priorities panel */
+  .aurora__a { animation: aurora-a 30s ease-in-out infinite alternate; }
+  .aurora__b { animation: aurora-b 36s ease-in-out infinite alternate; }
+  .cover .aurora__a, .cover .aurora__b { will-change: transform; }
+
+  .js .site-nav.is-open { animation: sheet 0.28s var(--ease); }
+
+  @view-transition { navigation: auto; }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes aurora-a { from { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); } to { transform: translate3d(4%, 3%, 0) rotate(6deg) scale(1.08); } }
+@keyframes aurora-b { from { transform: translate3d(0, 0, 0) rotate(0deg) scale(1.05); } to { transform: translate3d(-4%, -3%, 0) rotate(-5deg) scale(1); } }
+@keyframes sheet { from { opacity: 0; transform: translateY(-8px) scale(0.985); } to { opacity: 1; transform: none; } }
+
+.nowrap { white-space: nowrap; }
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
+main[tabindex="-1"]:focus, section[tabindex="-1"]:focus { outline: none; }
+.source-note a, .form-privacy a, .preview-note p a { padding-block: 12px; }
+.photo-credit a:focus-visible, .form-privacy a:focus-visible, .prose a:not(.button):focus-visible,
+.form-noscript a:focus-visible, .site-footer__bottom a:focus-visible, .source-figure figcaption a:focus-visible,
+.source-note a:focus-visible, .preview-note p a:focus-visible { padding-block: 0; outline-offset: 2px; }
+
+
+/* 15. Media queries ------------------------------------------------------------------ */
+
+/* Phone menu: a near-opaque dark sheet under the pill header (with JS) */
+@media (max-width: 999.98px) {
+  .js .menu-toggle { display: inline-flex; }
+  .js .header-cta { display: inline-flex; flex: none; min-height: 48px; margin-left: auto; padding: 0 16px 0 18px; gap: 10px; }
+  .js .header-cta .button__chip { width: 32px; height: 32px; margin-right: -10px; }
+  .js .site-nav {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    max-height: calc(100svh - var(--sheet-top, calc(var(--header-total) + 4px)) - 20px);
+    padding: 10px 10px calc(14px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid rgb(255 255 255 / 0.16);
+    border-radius: var(--r-tile);
+    background-color: rgb(22 13 42 / 0.97);
+    color: var(--ink-on-dark);
+    box-shadow: 0 40px 90px -30px rgb(0 0 0 / 0.9);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+  }
+  .js .site-nav { --focus: var(--peach-300); }
+  .js .site-nav.is-open { display: flex; }
+  .js .site-nav__pill { display: none; }
+  .js .site-nav__list { flex-direction: column; align-items: stretch; gap: 0; }
+  .js .site-nav__list li + li { border-top: 1px solid rgb(255 255 255 / 0.1); }
+  .js .site-nav__link {
+    display: flex;
+    gap: 14px;
+    min-height: 64px;
+    padding: 0 16px;
+    border-radius: var(--r-md);
+    color: var(--ink-on-dark);
+    font-size: 1.375rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  .js .site-nav__link::before { width: 8px; height: 8px; margin: 0; }
+  .js .site-nav__link:hover, .js .site-nav__link.is-active { background: rgb(255 255 255 / 0.08); }
+  .js .site-nav__cta { display: none; }
+  .js .site-nav__aside { display: block; padding: 4px 16px 2px; color: var(--ink-on-dark-muted); font-size: var(--fs-16); text-align: center; }
+  .js .site-nav__aside a { display: inline-flex; align-items: center; min-height: 44px; color: var(--peach-200); font-weight: 700; text-decoration-color: rgb(255 178 122 / 0.6); text-decoration-thickness: 2px; text-underline-offset: 5px; }
+
+  /* No-JS fallback: links wrap under the wordmark in a plain dark bar */
+  html:not(.js) .site-header { position: relative; }
+  html:not(.js) .site-header__bar { flex-wrap: wrap; height: auto; padding: 10px 14px; border-radius: var(--r-tile); -webkit-backdrop-filter: none; backdrop-filter: none; background-color: rgb(20 12 40 / 0.96); }
+  html:not(.js) .site-nav, html:not(.js) .site-nav__list { flex-wrap: wrap; gap: 0 18px; }
+  html:not(.js) .site-nav__pill { display: none; }
+  html:not(.js) .site-nav__link { min-height: 44px; padding-inline: 0; }
+  html:not(.js) .site-nav__link::before { display: none; }
+  html:not(.js) .site-nav__link:hover { background: none; text-decoration: underline; text-decoration-color: var(--orange); text-decoration-thickness: 2px; text-underline-offset: 5px; }
+  html:not(.js) .site-nav__cta { min-height: 44px; padding: 0; background: none; box-shadow: none; color: var(--ink-on-dark); font-weight: 600; text-decoration: underline; text-decoration-color: var(--orange); text-decoration-thickness: 2px; text-underline-offset: 5px; }
+  html:not(.js) .site-nav__cta:hover { background: none; box-shadow: none; }
+  html:not(.js) .site-nav__cta .button__chip { display: none; }
+}
+
+/* Phone header: wordmark, Get Involved and Menu share the pill */
+.site-header:not(.doc-header) .wordmark { min-width: 0; }
+@media (max-width: 599.98px) {
+  .js .header-cta { padding: 0 18px; }
+  .js .header-cta .button__chip { display: none; }
+}
+@media (max-width: 499.98px) {
+  .js .site-header:not(.doc-header) .site-header__bar { padding-left: 12px; gap: 8px; }
+  .wordmark { gap: 8px; }
+  .wordmark__mark { width: 34px; height: 34px; }
+  /* Capped by the viewport width too, so a larger reader text size cannot push the name under the rigid controls */
+  .js .site-header:not(.doc-header) .wordmark__name { padding-bottom: 5px; border-bottom: 2px solid var(--orange); font-size: min(1.25rem, 6vw); }
+  .js .site-header:not(.doc-header) .wordmark__office { display: none; }
+  /* Subpages keep the office line; both lines are capped the same way (never under 14px from 320px up),
+     so a larger reader text size does not turn the pill into a four-line block */
+  .doc-header .wordmark__name { font-size: min(1.375rem, 6vw); }
+  .doc-header .wordmark__office { font-size: min(var(--fs-14), 4.4vw); }
+  .js .header-cta { padding: 0 16px; }
+  .js .menu-toggle { width: 48px; padding: 0; justify-content: center; }
+  .js .menu-toggle__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+
+/* Very small phones */
+@media (max-width: 359.98px) {
+  .js .site-header:not(.doc-header) .site-header__bar { padding-left: 10px; gap: 6px; }
+  .js .site-header:not(.doc-header) .wordmark__name { font-size: min(1.125rem, 6vw); }
+  /* The home page's pill has no room for the mark beside the name, the button and Menu here */
+  .js .site-header:not(.doc-header) .wordmark__mark { display: none; }
+  .wordmark__mark { width: 30px; height: 30px; }
+  .js .header-cta { padding: 0 12px; font-size: 0.9375rem; }
+  .preview-note__inner { gap: 4px 12px; }
+  .preview-note__dot { display: none; }
+  .site-header__bar { padding-left: 14px; gap: 8px; }
+  .wordmark__name { font-size: 1.25rem; }
+  .doc-header .wordmark__name { font-size: min(1.25rem, 6.25vw); }
+  .menu-toggle { width: 48px; padding: 0; justify-content: center; }
+  .menu-toggle__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .calendar__dows, .calendar__grid { gap: 3px; }
+  .contact-card__value { font-size: 1.25rem; }
+  .contact-card__value--page { font-size: 1.0625rem; }
+  .vote__hours { font-size: 0.9375rem; }
+  .field input, .field select { padding-left: 14px; }
+  .field select { padding-right: 36px; font-size: var(--fs-16); background-position: right 12px center; background-size: 18px; }
+  .vote__early, .vote__day { padding-left: calc(var(--tile-pad) + 26px); }
+}
+
+/* Narrow phones */
+@media (max-width: 399.98px) {
+  .preview-note strong, .preview-note a { white-space: normal; }
+  .spec dt { letter-spacing: 0.06em; }
+  .step p { text-wrap: balance; }
+  .fact { padding-inline: 16px; }
+}
+/* Phone cover: name, date line, both buttons on one row and the lede, then the portrait at full width and the
+   early-voting tile. Election Day, the polls and the ballot tiles step aside (the date line and Voting carry them). */
+@media (max-width: 599.98px) {
+  .cover__when { display: flex; }
+  .fact--day, .fact--polls, .fact--ballot { display: none; }
+  .cover__grid { grid-template-columns: minmax(0, 1fr); }
+  .cover__portrait, .fact--early { grid-column: 1; grid-row: auto; }
+  .portrait__frame { min-height: 0; height: min(calc((100vw - 32px) * 1.25), 56svh); }
+  .portrait__frame img { object-position: 50% 8%; }
+  /* One row of two equal buttons; they stack only when both labels cannot fit (a larger reader text size) */
+  .hero__actions { flex-wrap: wrap; gap: 8px; order: 1; }
+  .hero__actions .button { flex: 1 1 0; min-height: 52px; padding-inline: 14px; justify-content: center; }
+  .hero__lede { order: 2; }
+  .hero__btn-full { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+  .hero__btn-short { display: inline; }
+}
+@media (max-width: 399.98px) {
+  .hero__actions .button__chip { display: none; }
+}
+/* One phone gutter: every .wrap keeps the 16px gutter; the priorities panel runs edge to edge (no inset) instead of
+   narrowing its own content */
+@media (max-width: 599.98px) {
+  .priorities.section-panel { margin-inline: 0; border-radius: 28px; }
+}
+/* Phone Meet Scott: a tighter rhythm (the photo shelf follows the source note at 24px and the section closes at
+   56px), the stats side by side (one column only under 360px, the figure over its label) and a more compact
+   VOTE411 card */
+@media (max-width: 599.98px) {
+  .meet { padding-bottom: 56px; }
+  .meet__grid { gap: 24px; }
+  .meet__intro { gap: 20px; }
+  .vote411-card { padding: 16px 16px 16px 20px; }
+  .stats { grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 0; }
+  .stat { display: flex; flex-direction: column; gap: 8px; padding: 16px; }
+  .stat__value { font-size: 2.75rem; }
+  .stat__unit { font-size: 1.125rem; }
+  .stat__label { font-size: var(--fs-15); }
+}
+@media (max-width: 359.98px) {
+  .stats { grid-template-columns: minmax(0, 1fr); }
+}
+/* Phone voting: the calendar drops its head (the two cards above state the same dates; the legend stays) */
+@media (max-width: 599.98px) {
+  .calendar__head { display: none; }
+}
+@media (max-width: 479.98px) {
+  /* Both date cards end on full-width pills: the voter-information button, then "Add to calendar" at the same width */
+  .vote__actions { align-self: stretch; row-gap: 8px; }
+  .vote__early .vote__actions { row-gap: 2px; }
+  .vote__actions .cal-link { width: 100%; justify-content: center; }
+  .vote__hours { gap: 8px; padding-right: 16px; }
+  .vote__cta { width: 100%; justify-content: center; gap: 10px; padding: 6px 8px 6px 16px; border-radius: 26px; font-size: 0.9375rem; line-height: 1.25; text-align: center; text-wrap: balance; }
+  .vote__cta .button__chip { margin-right: 0; }
+  .form-card { padding-inline: 20px; }
+  .form-card .form-result { padding: 0; border: 0; background: none; }
+  .consent { gap: 12px; padding: 14px; }
+  .way { font-size: 1.0625rem; line-height: 1.3; }
+  .site-footer__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px 16px; }
+  .site-footer__brand { grid-column: 1 / -1; }
+  .contact-card { gap: 14px; padding-right: 16px; }
+  .contact-card__icon { width: 48px; height: 48px; }
+}
+@media (max-width: 389.98px) {
+  .vote__cta { padding-inline: 14px; }
+  .vote__cta .button__chip { display: none; }
+}
+@media (max-width: 359.98px) {
+  /* VOTE411 card: the title takes the full card width; the arrow chip pairs with "On VOTE411" below it */
+  .vote411-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 16px; }
+  .vote411-card__text { display: contents; }
+  .vote411-card__kicker, .vote411-card__title { grid-column: 1 / -1; }
+  .vote411-card__foot { grid-column: 1; grid-row: 3; }
+  .vote411-card__chip { grid-column: 2; grid-row: 3; }
+  .site-footer__grid { column-gap: 12px; }
+  .site-footer__head { letter-spacing: 0.06em; }
+  .vote__hours { padding-inline: 14px; }
+  .vote__hours .icon { display: none; }
+  .section-label { letter-spacing: 0.1em; }
+  .contact-card__label { letter-spacing: 0.04em; }
+  .site-footer__grid { grid-template-columns: max-content minmax(0, 1fr); }
+  .site-footer__links a { font-size: 0.9375rem; }
+  /* The form card keeps the page's 16px rhythm inside too, so the consent paragraphs keep a readable measure */
+  .form-card { padding-inline: 16px; }
+  .consent { gap: 10px; padding: 12px; }
+}
+
+/* >= 480px */
+@media (min-width: 480px) {
+  .site-footer__grid { grid-template-columns: 1fr 1fr; }
+  .site-footer__brand { grid-column: 1 / -1; }
+  .calendar__legend { grid-template-columns: 1fr 1fr; }
+}
+
+/* >= 600px: tablets. The cover bento opens to two columns; the portrait spans the two date rows */
+@media (min-width: 600px) {
+  :root { --header-h: 58px; --header-pad: 8px; }
+  .preview-note__more { display: inline; }
+  .wordmark__name { font-size: 1.5rem; }
+  .doc-back__more { position: static; width: auto; height: auto; overflow: visible; clip-path: none; }
+  .cover__place { display: inline-block; }
+  .cover__grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  .fact--ballot { grid-column: 1; grid-row: 4; }
+  .fact--early { grid-column: 2; grid-row: 4; }
+  .fact { min-height: 150px; }
+  .hero__call { display: block; }
+  .vote__facts { grid-template-columns: repeat(2, max-content); }
+  .calendar__dows, .calendar__grid { gap: 6px; }
+  .day { min-height: 64px; }
+  .day i { font-size: min(1.75rem, 4.6vw); }
+}
+
+/* >= 760px: the voting bento's twelve columns, the horizontal timeline rail (the pillar matrix: section 8) */
+@media (min-width: 760px) {
+  .preview-note__extra { display: inline; }
+  .site-footer__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .site-footer__bottom { grid-template-columns: 1fr auto; align-items: center; column-gap: 24px; }
+  .site-footer__bottom > .paid-for + p { grid-column: 1 / -1; }
+  .vote__bento { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .vote__early { grid-column: 1 / span 7; }
+  .vote__day { grid-column: 8 / span 5; }
+  .vote__calendar, .vote__ballot, .vote__steps, .vote__questions { grid-column: 1 / -1; }
+  .vote__early, .vote__day { padding-left: var(--tile-pad); padding-top: calc(var(--tile-pad) + 36px); }
+  /* Side by side the two cards share a height, so each ends on its action row (no empty band under the shorter one) */
+  .vote__early .vote__actions, .vote__day .vote__actions { margin-top: auto; }
+  .vote__day .vote__actions { padding-top: 4px; }
+  .vote__node { top: var(--tile-pad); }
+  .vote__early::after { left: calc(var(--tile-pad) + var(--node)); right: calc(-1 * var(--bento-gap) - 2px); top: calc(var(--tile-pad) + var(--node) / 2 - 1px); bottom: auto; width: auto; height: 2px; background: linear-gradient(90deg, var(--regalia), var(--orange)); }
+  .vote__day::after { left: 0; top: calc(var(--tile-pad) + var(--node) / 2 - 1px); width: var(--tile-pad); height: 2px; }
+  /* The steps: one left-to-right sequence of three flat columns divided by 1px rules (no sand boxes), each number
+     chip above its title, the links on one bottom line */
+  .steps__list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
+  .step { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr auto; align-items: start; padding: 4px clamp(16px, 2.4vw, 28px); border-bottom: 0; }
+  .step + .step { padding-top: 4px; box-shadow: inset 1px 0 0 var(--line); }
+  .step:first-child { padding-left: 0; }
+  .step:last-child { padding-right: 0; padding-bottom: 4px; }
+  .step__title, .step > p { grid-column: 1; }
+  .step > p:not(.link-line) { margin-top: 8px; }
+  .step__num { width: 48px; height: 48px; margin-bottom: 16px; border-radius: 14px; font-size: 1.625rem; }
+  .step .link-line { align-self: end; }
+}
+/* From 1100px each column is wide enough for a 40px chip beside its title: one header row instead of two */
+@media (min-width: 1100px) {
+  .step { grid-template-columns: 40px minmax(0, 1fr); grid-template-rows: auto 1fr auto; column-gap: 14px; }
+  .step__num { grid-column: 1; width: 40px; height: 40px; margin-bottom: 0; border-radius: 12px; font-size: 1.375rem; }
+  .step__title { grid-column: 2; align-self: center; }
+  .step > p { grid-column: 1 / -1; }
+  .step > p:not(.link-line) { margin-top: 12px; }
+}
+/* Where subgrid exists the three steps share their rows, so the titles, the texts and the links each start level */
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 760px) {
+    .steps__list { grid-template-rows: auto auto 1fr auto; }
+    .step { grid-row: span 4; grid-template-rows: subgrid; }
+    .step .link-line { align-self: start; }
+  }
+  @media (min-width: 1100px) {
+    .steps__list { grid-template-rows: auto 1fr auto; }
+    .step { grid-row: span 3; }
+  }
+}
+
+/* Tablet and small desktop: Get Involved copy beside the tiles, full-width form, contacts beside the date */
+@media (min-width: 760px) and (max-width: 1239.98px) {
+  .join__copy { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto auto 1fr; column-gap: clamp(28px, 4vw, 56px); align-items: start; }
+  .join__copy .section-label { grid-column: 1 / -1; }
+  .join__copy .h2, .join__intro { grid-column: 1; }
+  .ways { grid-column: 2; grid-row: 2 / span 3; margin-top: 0; }
+  .direct { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--bento-gap); align-items: start; }
+  .direct__title { grid-column: 1 / -1; }
+  .direct__links { grid-column: 1; }
+  .join-date { grid-column: 2; align-self: stretch; display: flex; flex-direction: column; justify-content: center; margin-top: 18px; }
+}
+
+/* >= 900px */
+@media (min-width: 900px) {
+  :root { --header-h: 64px; --header-pad: 10px; }
+}
+
+/* >= 1000px: desktop navigation, the nameplate row with the portrait, the four-tile fact row, two-column Meet */
+@media (min-width: 1000px) {
+  .js .menu-toggle, .menu-toggle { display: none; }
+  .site-header {
+    padding-left: max(calc(var(--gutter) - 20px), var(--panel-inset), env(safe-area-inset-left));
+    padding-right: max(calc(var(--gutter) - 20px), var(--panel-inset), env(safe-area-inset-right));
+  }
+  .site-header__bar { padding-left: 19px; }
+  .wordmark__name { font-size: 1.625rem; }
+  .wordmark__office { margin-top: 5px; padding-top: 5px; }
+
+  /* Tall screens (over 1000px) get a little more air above the sign and above the bar, growing with the height */
+  .cover {
+    --cover-air: clamp(0px, (100svh - 1000px) * 0.25, 24px);
+    padding-top: calc(16px + var(--cover-air));
+  }
+  .cover__grid { grid-template-columns: minmax(0, 1fr); gap: calc(24px + var(--cover-air)); }
+  /* The sign row. The copy wrapper dissolves and its parts take the rows of one grid: the eyebrow; the sign, with
+     the portrait at its right (as tall as the sign, at 4:5); the lede; the actions. --sign-h is the sign's height.
+     It follows the viewport height, so the bar stays on the first screen (304px on a 1366x768 laptop, 400px at
+     1440x900, 500px from about 1000px tall), and the row's width, so the sign and the portrait always fit side by
+     side (the sign is 1.775 times as wide as it is tall, the portrait 0.8). The rows tighten with the height on
+     short laptops (12px from about 657px tall, 18px from 704px). */
+  .cover__top {
+    --sign-h: clamp(304px, min(100svh - 500px, (100cqw - 64px) / 2.6), 500px);
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: clamp(32px, 4vw, 64px);
+    row-gap: clamp(12px, (100svh - 560px) / 8, 18px);
+    align-items: start;
+  }
+  .cover__copy { display: contents; }
+  .cover__eyebrow { grid-column: 1; grid-row: 1; }
+  .hero__title { grid-column: 1; grid-row: 2; }
+  .hero__lede { grid-column: 1; grid-row: 3; }
+  .hero__actions { grid-column: 1; grid-row: 4; margin-top: 4px; }
+  .sign { max-width: none; }
+  .sign__img { width: auto; height: var(--sign-h); }
+  .cover__portrait { grid-column: 2; grid-row: 2; width: calc(var(--sign-h) * 0.8); height: var(--sign-h); }
+  .fact--day, .fact--polls, .fact--ballot, .fact--early { grid-column: auto; grid-row: auto; }
+  .portrait__ring { padding: 4px; border-radius: calc(var(--r-tile) + 6px); }
+  .portrait__frame { aspect-ratio: auto; min-height: 0; border-radius: calc(var(--r-tile) + 2px); }
+  .portrait__frame img { object-position: 47% 4%; }
+
+  /* The four facts become one dark instrument bar: one fill, one masked hairline, outer radii only, the
+     cells divided by 1px light lines. Subgrid gives every cell the same three rows (eyebrow / value / sub-line), so
+     the four values share one bottom edge and no cell carries an empty fourth row. */
+  .cover__facts {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: auto auto auto;
+    gap: 0;
+    border-radius: var(--r-tile);
+    background: var(--grad-dark);
+    box-shadow: var(--shadow-dark);
+  }
+  .cover__facts::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    padding: 1px;
+    border-radius: inherit;
+    background: var(--grad-border-dark);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  /* A size container cannot be a subgrid, so the cells drop their container type here (the numeral wraps on its own) */
+  .cover__facts > .fact { container-type: normal; display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 10px; align-content: start; min-height: 0; padding: 22px 24px; border-radius: 0; background: none; box-shadow: none; }
+  .cover__facts > .fact::before { content: none; }
+  .cover__facts > .fact + .fact { box-shadow: inset 1px 0 0 rgb(255 255 255 / 0.1); }
+  .cover__facts > .fact > :nth-child(2) { margin: 0; }
+  /* One value size across the bar (the Election Day numeral stays the one large figure) */
+  .cover__facts .tile__big { font-size: clamp(1.375rem, 0.9rem + 1.3vw, 2.25rem); }
+  .cover__facts .fact__numeral { flex-wrap: wrap; }
+  /* The early-voting cell is the bar's link: its arrow chip sits in the cell's top-right corner, level with the
+     eyebrow, and "Make a plan to vote" stays in the link's accessible name (visually hidden), so the bar needs no
+     fourth row. The hover light keeps the bar's outer corners. */
+  .cover__facts .fact__cta { position: absolute; top: 13px; right: 16px; margin: 0; }
+  .cover__facts .fact__cta-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .cover__facts > .fact--early > .tile__eyebrow { padding-right: 36px; }
+  .cover__facts > .fact--early { border-radius: 0 var(--r-tile) var(--r-tile) 0; }
+  .cover__facts > .fact--early:hover { translate: none; background: rgb(255 255 255 / 0.05); }
+  .fact__numeral { margin: 0; }
+  .fact__dayno { font-size: 4.5rem; }
+  /* In the bar the Election Day date line is a sub-line like the other three (the NOV 3 numeral is the accent) */
+  .cover__facts .fact--day .tile__value { color: var(--ink-on-dark-muted); font-size: var(--fs-16); font-weight: 600; line-height: 1.45; }
+  .fact__cta-chip { width: 36px; height: 36px; }
+
+  .meet__grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: clamp(40px, 5vw, 80px); align-items: start; }
+  .gallery { margin-top: calc(var(--fs-h2) * 0.15); }
+  /* Meet Scott while the gallery is a photo shelf: an editorial spread on twelve columns. The head and the bio share
+     the first row on one baseline edge, the two stats and the VOTE411 card form one row of three equal tiles, the
+     source note runs under them and the shelf runs full width below. (With a photo, the two columns above return.) */
+  .meet:not(:has(.gallery img)) .meet__grid { grid-template-columns: minmax(0, 1fr); row-gap: clamp(32px, 4vw, 40px); }
+  .meet:not(:has(.gallery img)) .meet__intro { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--bento-gap); row-gap: 28px; align-items: end; }
+  .meet:not(:has(.gallery img)) .meet__intro > .h2 { grid-column: 1 / span 5; }
+  .meet:not(:has(.gallery img)) .meet__bio { grid-column: 7 / span 6; }
+  .meet:not(:has(.gallery img)) .stats { grid-column: 1 / span 8; grid-template-columns: 1fr 1fr; gap: var(--bento-gap); margin-top: 0; align-self: stretch; }
+  .meet:not(:has(.gallery img)) .vote411-card { grid-column: 9 / span 4; align-self: stretch; }
+  .meet:not(:has(.gallery img)) .source-note { grid-column: 1 / -1; max-width: none; }
+  .meet:not(:has(.gallery img)) .gallery { margin-top: 0; }
+  .site-footer__grid { grid-template-columns: 1.6fr 1fr 1fr 1fr; }
+  .site-footer__brand { grid-column: auto; }
+
+  .doc-layout { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); column-gap: clamp(28px, 4vw, 64px); align-items: start; }
+  .doc-toc { position: sticky; top: calc(var(--header-total) + 24px); }
+
+  .section-intro { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; gap: 40px; }
+  .section-intro__lede { align-self: end; justify-self: end; max-width: 34ch; }
+}
+@media (min-width: 1000px) and (max-width: 1199.98px) {
+  .meet__grid { grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); }
+  /* In the two-column (photo) layout the stats stack as rows; on the editorial spread they stay two up */
+  .meet:has(.gallery img) .stats { grid-template-columns: 1fr; gap: 10px; }
+  .meet:has(.gallery img) .stat { display: grid; grid-template-columns: 7.75rem minmax(0, 1fr); align-items: center; gap: 16px; padding: 18px 20px; }
+  .meet:has(.gallery img) .stat__value { font-size: 3.25rem; }
+  .meet:has(.gallery img) .stat__unit { font-size: 1.125rem; }
+  /* On the spread the VOTE411 card is a third of the row here: a step smaller title beside a 44px disc keeps
+     "Read his candidate questionnaire" to two lines, as tall as the stat tiles' type */
+  .meet:not(:has(.gallery img)) .vote411-card { gap: 16px; padding-right: 18px; }
+  .meet:not(:has(.gallery img)) .vote411-card__title { font-size: 1.25rem; }
+  /* The bio's half of the spread is narrow here (about 440px of 24px text, five or six lines): balanced lines keep an
+     even right edge beside the three-line head instead of the short fourth line the global pretty wrap leaves */
+  .meet:not(:has(.gallery img)) .meet__bio { text-wrap: balance; }
+  .meet:not(:has(.gallery img)) .vote411-card__chip { width: 44px; height: 44px; }
+}
+/* 1200-1299px: the bar's cells are a little narrower than "8:30 a.m.–6 p.m. Closed Sunday." (244px at 16px), so the
+   early-voting sub-line broke into three lines and left the other cells half empty. The cells take 20px of side
+   padding here and the early-voting column keeps at least 288px (248px of text; the four columns are equal again
+   from about 1236px), so it breaks in two like the others. The range runs to 1299px so a window with a classic
+   17px scrollbar (a 1280px window lays out 1263px) is covered too. */
+@media (min-width: 1200px) and (max-width: 1299.98px) {
+  .cover__facts { grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(288px, 1fr); }
+  .cover__facts > .fact { padding-inline: 20px; }
+}
+/* The value row sits on the shared row's bottom edge only where the cells are subgrids. Without subgrid the bar's
+   cells stay flex columns, their content from the top and left-aligned (an end alignment there would push the
+   values to the cell's right edge). */
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 1000px) {
+    .cover__facts > .fact > :nth-child(2) { align-self: end; }
+  }
+}
+@supports not (grid-template-rows: subgrid) {
+  @media (min-width: 1000px) {
+    .cover__facts { grid-template-rows: none; }
+    .cover__facts > .fact { display: flex; flex-direction: column; justify-content: flex-start; grid-row: auto; gap: 10px; }
+  }
+}
+
+/* >= 1100px: the single-row calendar; the steps run full width, then the ballot and the questions share the last row
+   (order moves both after the steps; the ballot holds no links, so the focus order still follows the eye) */
+@media (min-width: 1100px) {
+  /* The two date cards take equal halves, so each card's action row (the button or link and "Add to calendar") fits
+     on one line and the row stays short */
+  .vote__early { grid-column: 1 / span 6; }
+  .vote__day { grid-column: 7 / span 6; }
+  .vote__steps { grid-column: 1 / -1; }
+  .vote__ballot { grid-column: 1 / span 5; order: 1; align-content: start; }
+  .vote__questions { grid-column: 6 / span 7; order: 1; }
+  /* The date stamp reads as one footnote line here (it wraps where the card is narrower) */
+  .questions .stamp strong { display: inline; }
+  /* The calendar drops its head here as on phones: the two date cards directly above state the same dates, and the
+     month bars name the months (the tile is one image to assistive technology, named by its aria-label) */
+  .calendar__head { display: none; }
+
+  .calendar__dows { display: none; }
+  .calendar__months, .calendar__grid { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)) minmax(0, 2.3fr); gap: 6px; }
+  .calendar__months { margin-bottom: 8px; }
+  .calendar__month { padding-left: 8px; border-left: 3px solid var(--purple); color: var(--ink); font-size: var(--fs-14); font-weight: 700; letter-spacing: 0.12em; line-height: 1.2; text-transform: uppercase; }
+  .calendar__month--oct { grid-column: 1 / span 13; }
+  .calendar__month--nov { grid-column: 14 / span 3; }
+  .day { align-items: flex-start; justify-content: space-between; min-height: 92px; padding: 10px 8px 14px; text-align: left; }
+  .day b { display: block; }
+  .day--open b { color: var(--regalia); }
+  .day__month { display: none; }
+  .day--election { grid-column: auto; flex-direction: column; gap: 4px; padding: 10px 10px 14px; }
+  .day i, .day--election i { font-size: min(1.75rem, 2.6vw); }
+  /* The label wraps inside its cell at larger reader text sizes (the hours too) rather than running past it */
+  .day--election .day__wide { position: static; order: 2; max-width: 100%; margin-top: 2px; white-space: normal; overflow-wrap: break-word; }
+  .day--election .day__wide span { white-space: normal; }
+  .day--election i { order: 3; margin-top: auto; }
+  .calendar__legend { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+}
+
+/* >= 1600px: the date cards read like tickets, the facts beside the big numerals instead of under them (the early-voting
+   facts as one column, the Election Day date over the polls pill), so the row stays short under the larger padding */
+@media (min-width: 1600px) {
+  .vote__early, .vote__day { display: grid; grid-template-columns: max-content minmax(0, 1fr); grid-template-rows: auto auto auto 1fr; column-gap: 40px; row-gap: 10px; align-items: end; }
+  .vote__early { grid-template-areas: "title title" "when facts" "note note" "actions actions"; }
+  .vote__day { grid-template-rows: auto auto 1fr; grid-template-areas: "title title" "when info" "actions actions"; }
+  .vote__early .vote__title, .vote__day .vote__title { grid-area: title; align-self: start; }
+  .vote__early .vote__when, .vote__day .vote__when { grid-area: when; margin-block: 0 2px; }
+  .vote__early .vote__facts { grid-area: facts; grid-template-columns: max-content; gap: 2px; line-height: 1.4; }
+  .vote__early .vote__note { grid-area: note; }
+  .vote__early .vote__actions, .vote__day .vote__actions { grid-area: actions; }
+  .vote__day .vote__info { grid-area: info; display: grid; justify-items: start; gap: 10px; }
+  .vote__ballot .spec__item { padding-block: 12px; }
+}
+
+/* >= 1240px: Get Involved copy beside the form */
+@media (min-width: 1240px) {
+  .join__grid { grid-template-columns: minmax(0, 5fr) minmax(668px, 7fr); grid-template-rows: auto 1fr; column-gap: clamp(32px, 4vw, 64px); row-gap: 0; align-items: start; }
+  .join__copy { grid-column: 1; grid-row: 1; }
+  .form-card { grid-column: 2; grid-row: 1 / span 2; align-self: stretch; }
+  .js .form-card { display: flex; flex-direction: column; justify-content: center; }
+  .direct { grid-column: 1; grid-row: 2; align-self: end; margin-top: 44px; }
+  .form-card:has(#form-result:not([hidden])) { justify-content: flex-start; }
+  .form-card:has(#form-result:not([hidden])) #signup-form { flex: 1 1 auto; display: flex; flex-direction: column; }
+  .form-card:has(#form-result:not([hidden])) .form-result { flex: none; margin-block: auto; }
+  .join__grid:has(.form-error:not(:empty)) .direct { align-self: start; }
+  html:not(.js) .join__copy { grid-row: 1 / span 2; }
+  html:not(.js) .form-card { grid-row: 1; align-self: start; }
+  html:not(.js) .direct { grid-column: 2; grid-row: 2; align-self: start; margin-top: 24px; }
+}
+
+/* Big screens (>= 1600px): a wider wrap, larger section heads and rhythm, so the page stops reading as a boxed
+   1200px column (the sign row grows with the height, up to a 500px sign and a 400px portrait). The wrap is fixed
+   from here, so the section heads are too (84px, 88px from about 1915px): a head that kept growing with the window
+   would break one word per line in its fixed column (2240px and wider). */
+@media (min-width: 1600px) {
+  :root { --wrap: 1360px; --fs-h2: clamp(5.25rem, 4.6vw, 5.5rem); --tile-pad: 44px; --section-y: 144px; }
+}
+
+/* Short laptop windows (a 1366x768 screen shows about 1366x657 in a browser): the lede tightens with the height, with
+   no steps (unchanged from about 720px tall); the sign row's gaps do the same (see the sign row). */
+@media (min-width: 1000px) {
+  .hero__lede { font-size: clamp(1.0625rem, min(1rem + 0.35vw, (100svh - 390px) / 15.75), 1.3125rem); }
+}
+
+/* Without container query units the sign's height follows the viewport height and the window width alone */
+@supports not (width: 1cqw) {
+  @media (min-width: 1000px) {
+    .cover__top { --sign-h: clamp(304px, min(100svh - 500px, (100vw - 112px) / 2.6), 436px); }
+  }
+}
+
+/* Short landscape screens (phones turned sideways): keep the cover compact */
+@media (min-width: 560px) and (max-height: 500px) {
+  .sign { max-width: 520px; }
+  .cover__copy { padding-block: 12px; }
+  .cover__place { display: none; }
+}
+
+/* Preferences ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; }
+  .aurora__a, .aurora__b { animation: none !important; will-change: auto; }
+  .vote411-card:hover, .contact-card:hover, .way:hover, .fact--early:hover, .button--orange:hover { translate: none; }
+  .pillar__glow { display: none; }
+  .vote411-card:active { scale: none; }
+  .button:active, .menu-toggle:active { transform: none; translate: none; }
+}
+
+@media (forced-colors: active) {
+  .consent input { appearance: auto; -webkit-appearance: auto; }
+  .consent input::after { display: none; }
+  .field select { appearance: auto; -webkit-appearance: auto; background-image: none; padding-right: 16px; }
+  .button, .menu-toggle, .site-header__bar, .tile, .pillar, .consent, .photo-slot__frame, .site-footer, .day, .way, .form-result, .form-card, .portrait__frame, .doc-toc, .canvas, .section-panel, .cover__when, .motto__band { border: 1px solid CanvasText; }
+  /* The flat steps keep their dividers (box-shadow rules are dropped here; the phone hairlines are borders already) */
+  @media (min-width: 760px) {
+    .step + .step { border-left: 1px solid CanvasText; }
+  }
+  /* The instrument bar: one border around it and a rule between the cells (box-shadow dividers are dropped here) */
+  @media (min-width: 1000px) {
+    .cover__facts { border: 1px solid CanvasText; }
+    .cover__facts > .fact { border: 0; }
+    .cover__facts > .fact + .fact { border-left: 1px solid CanvasText; }
+  }
+  .js .site-nav.is-open { border: 1px solid CanvasText; }
+  .day--election { border-width: 3px; }
+  .day--closed i, .day--off i { text-decoration: line-through; }
+  .swatch { border: 1px solid CanvasText; }
+  .swatch--election { border-width: 3px; }
+  .swatch--closed, .swatch--off { forced-color-adjust: none; background: linear-gradient(to top right, transparent 44%, CanvasText 44% 56%, transparent 56%); box-shadow: none; }
+  .vote__facts li::before { border: 3px solid CanvasText; }
+  .vote__facts li.is-closed::before { border-width: 2px; }
+  .vote__node { forced-color-adjust: none; border-color: CanvasText; background: Canvas; box-shadow: none; }
+  .vote__day .vote__node { border-color: CanvasText; background: CanvasText; box-shadow: none; }
+  .vote__early::after, .vote__day::after, .eyebrow__dot, .eyebrow--on-dark .eyebrow__dot, .eyebrow__sep, .preview-note__dot, .section-label::after, .doc-toc a::before, .site-nav__link.is-active::before { forced-color-adjust: none; background: CanvasText; box-shadow: none; }
+  .photo-slot__glyph { background: Canvas; color: CanvasText; box-shadow: none; border: 1px solid CanvasText; }
+  .photo-slot:not(:has(img)) .photo-slot__draft { border: 1px solid CanvasText; }
+  /* The tile variants set their eyebrow icon colour at 0,3,0, so the reset names them too (an explicit colour on an
+     SVG survives forced colours in Chromium) */
+  .way__arrow, .contact-card__arrow, .vote__hours .icon, .form-alert .icon, .stamp__icon, .tile__eyebrow .icon,
+  .tile--dark .tile__eyebrow .icon, .tile--night .tile__eyebrow .icon, .tile--sun .tile__eyebrow .icon,
+  .questions__phone .icon, .cal-link--glass .icon { color: inherit; }
+  .stamp__icon { background: none; }
+  .menu-toggle__icon span { forced-color-adjust: none; background: ButtonText; }
+  .aurora, .pillar__glow, .site-nav__pill, .form-card::before, .canvas::before, .join::before, .join::after, .site-header__bar::before, .portrait__frame::after, .cover__facts::before, .photo-slot__frame::after, .motto__band::after, .motto__text::before { display: none; }
+  .cover__when-dot { forced-color-adjust: none; background: CanvasText; }
+  /* Each line of text gets a Canvas backplate over its full content area, so tightly set display lines
+     would paint over the line above them; they open up here */
+  .motto__line, .fact__numeral, .vote__when, .stat__value, .h2, .page-hero__title, .tile__big { line-height: 1.08; }
+  .pillar__icon, .icon-chip, .way__icon, .contact-card__icon, .step__num, .fact__cta-chip, .vote411-card__chip, .button__chip { border: 1px solid CanvasText; }
+}
+
+@media print {
+  /* Entrance animations restart when print lays the page out at paper width; they must never print at their
+     opacity-0 first frame (the cover's voting facts would vanish). Keep this in any print rewrite. */
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .preview-note, .site-header, .form-card, .ways, .skip-link, .hero__actions, .aurora { display: none !important; }
+  body, .canvas, .cover, .join, .site-footer, .page-hero { background: #fff !important; color: #000 !important; box-shadow: none !important; }
+  .section-panel, .tile--dark, .tile--night, .tile--sun, .vote411-card, .priorities { background: none !important; color: #000 !important; box-shadow: none !important; }
+  .tile, .pillar { box-shadow: none !important; border: 1px solid #999; }
+  .pillar, .pillar__text, .pillars__note, .photo-slot__draft, .pillars__more .button { background: none !important; color: #000 !important; }
+  /* The required attribution must print: black text in a black box */
+  .paid-for__box { color: #000 !important; border-color: #000 !important; }
+  /* The Our City band prints as its line alone in black (no photo, scrims or credit, and no dark block); the cream
+     and peach calendar link and plan link on the dark date tile print black. B6 rewrites this stylesheet. */
+  .motto__band { min-height: 0; background: none !important; color: #000 !important; box-shadow: none !important; }
+  .motto__media, .motto__band::after, .motto__text::before, .motto__credit { display: none !important; }
+  .motto__line, .motto__line > span + span, .motto .eyebrow { color: #000 !important; }
+  .cal-link--glass, .cal-link--glass .icon, .join-date__plan { color: #000 !important; border-color: #000 !important; background: none !important; }
+}

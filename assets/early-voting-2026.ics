@@ -1,0 +1,16 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Scott Allison for Clemson City Council//Voting reminder//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:early-voting-2026@scott-allison-clemson
+DTSTAMP:20261012T120000Z
+DTSTART:20261019T123000Z
+DTEND:20261019T220000Z
+SUMMARY:Early voting begins: Clemson City Council election
+DESCRIPTION:Early voting runs October 19–31\, Monday–Saturday\, 8:30 a.
+ m.–6 p.m.\, closed Sunday. Confirm early voting locations with Pickens C
+ ounty elections\, 864-898-5948.
+END:VEVENT
+END:VCALENDAR

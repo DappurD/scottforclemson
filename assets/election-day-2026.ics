@@ -1,0 +1,20 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Scott Allison for Clemson City Council//Voting reminder//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:election-day-2026@scott-allison-clemson
+DTSTAMP:20261012T120000Z
+DTSTART:20261103T120000Z
+DTEND:20261104T000000Z
+SUMMARY:Election Day: Clemson City Council
+DESCRIPTION:Polls open 7 a.m.–7 p.m. Confirm your polling place with Pick
+ ens County elections\, 864-898-5948\, https://pickensscelections.gov/
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Election Day: Clemson City Council
+END:VALARM
+END:VEVENT
+END:VCALENDAR
